@@ -6,6 +6,20 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- Single source of truth for the version, read by the release script
+         and stamped into the assembly so About / Settings can show it. -->
+    <Version>0.1.0</Version>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+    <Company>webjuanma</Company>
+    <Authors>Juan Manuel Castellanos</Authors>
+    <Product>InfraSftp</Product>
+
+    <!-- Velopack identifier — reverse-DNS, lowercase. Stable for the lifetime
+         of the app: changing this would break auto-update for every install
+         that already saw a previous id. -->
+    <VelopackAppId>com.webjuanma.InfraSftp</VelopackAppId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,5 +52,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="SSH.NET" Version="2025.1.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <PackageReference Include="Velopack" Version="0.0.1298" />
+    <PackageReference Include="Sentry" Version="4.13.0" />
   </ItemGroup>
 </Project>

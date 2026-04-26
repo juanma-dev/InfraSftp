@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "emdaz8gtjJM=",
+  "dgSpecHash": "G3zs0ZTKzY0=",
   "success": true,
   "projectFilePath": "C:\\Users\\juanm\\Documentos\\Documents\\PROGRAMMING\\InfraSftp\\InfraSftp.csproj",
   "expectedPackageFiles": [
@@ -30,6 +30,8 @@
     "C:\\Users\\juanm\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.3\\microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\microsoft.io.recyclablememorystream\\3.0.1\\microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\nuget.versioning\\6.14.0\\nuget.versioning.6.14.0.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\sentry\\4.13.0\\sentry.4.13.0.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\skiasharp\\3.119.3-preview.1.1\\skiasharp.3.119.3-preview.1.1.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\skiasharp.nativeassets.linux\\3.119.3-preview.1.1\\skiasharp.nativeassets.linux.3.119.3-preview.1.1.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\skiasharp.nativeassets.macos\\3.119.3-preview.1.1\\skiasharp.nativeassets.macos.3.119.3-preview.1.1.nupkg.sha512",
@@ -38,7 +40,11 @@
     "C:\\Users\\juanm\\.nuget\\packages\\ssh.net\\2025.1.0\\ssh.net.2025.1.0.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\juanm\\.nuget\\packages\\system.security.cryptography.protecteddata\\8.0.0\\system.security.cryptography.protecteddata.8.0.0.nupkg.sha512",
-    "C:\\Users\\juanm\\.nuget\\packages\\tmds.dbus.protocol\\0.92.0\\tmds.dbus.protocol.0.92.0.nupkg.sha512"
+    "C:\\Users\\juanm\\.nuget\\packages\\tmds.dbus.protocol\\0.92.0\\tmds.dbus.protocol.0.92.0.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\velopack\\0.0.1298\\velopack.0.0.1298.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.26\\microsoft.netcore.app.runtime.win-x64.8.0.26.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.26\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.26.nupkg.sha512",
+    "C:\\Users\\juanm\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.26\\microsoft.aspnetcore.app.runtime.win-x64.8.0.26.nupkg.sha512"
   ],
   "logs": []
 }

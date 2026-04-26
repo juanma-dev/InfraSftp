@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\juanm\\Documentos\\Documents\\PROGRAMMING\\InfraSftp\\InfraSftp.csproj": {
-      "version": "1.0.0",
+      "version": "0.1.0",
       "restore": {
         "projectUniqueName": "C:\\Users\\juanm\\Documentos\\Documents\\PROGRAMMING\\InfraSftp\\InfraSftp.csproj",
         "projectName": "InfraSftp",
@@ -71,9 +71,17 @@
               "target": "Package",
               "version": "[2025.1.0, )"
             },
+            "Sentry": {
+              "target": "Package",
+              "version": "[4.13.0, )"
+            },
             "System.Security.Cryptography.ProtectedData": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Velopack": {
+              "target": "Package",
+              "version": "[0.0.1298, )"
             }
           },
           "imports": [

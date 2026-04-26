@@ -51,3 +51,9 @@ dist-ssr/
 ## Project specific
 .claude/
 .gemini/
+
+## Release pipeline (Velopack)
+publish/
+releases/
+.signing/
+*.pfx

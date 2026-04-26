@@ -25,6 +25,7 @@
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Pkgxunit_analyzers Condition=" '$(Pkgxunit_analyzers)' == '' ">C:\Users\juanm\.nuget\packages\xunit.analyzers\1.4.0</Pkgxunit_analyzers>
+    <PkgSentry Condition=" '$(PkgSentry)' == '' ">C:\Users\juanm\.nuget\packages\sentry\4.13.0</PkgSentry>
     <PkgAvalonia_BuildServices Condition=" '$(PkgAvalonia_BuildServices)' == '' ">C:\Users\juanm\.nuget\packages\avalonia.buildservices\11.3.2</PkgAvalonia_BuildServices>
     <PkgAvalonia Condition=" '$(PkgAvalonia)' == '' ">C:\Users\juanm\.nuget\packages\avalonia\12.0.1</PkgAvalonia>
   </PropertyGroup>

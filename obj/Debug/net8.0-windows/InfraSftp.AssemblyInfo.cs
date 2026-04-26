@@ -10,13 +10,13 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("InfraSftp")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("webjuanma")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("0.1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.0+a649b85eeeef3f14d560f8ba9b67ee90eeea0aa6")]
 [assembly: System.Reflection.AssemblyProductAttribute("InfraSftp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InfraSftp")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("0.1.0.0")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("InfraSftp.Tests")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]

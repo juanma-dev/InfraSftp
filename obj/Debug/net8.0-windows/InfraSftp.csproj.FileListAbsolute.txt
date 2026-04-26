@@ -92,3 +92,8 @@ C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windo
 C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windows\InfraSftp.pdb
 C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windows\InfraSftp.genruntimeconfig.cache
 C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windows\ref\InfraSftp.dll
+c:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\bin\Debug\net8.0-windows\NuGet.Versioning.dll
+c:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\bin\Debug\net8.0-windows\Velopack.dll
+c:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windows\InfraSftp.sourcelink.json
+C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\bin\Debug\net8.0-windows\Sentry.dll
+C:\Users\juanm\Documentos\Documents\PROGRAMMING\InfraSftp\obj\Debug\net8.0-windows\Sentry.Attributes.cs

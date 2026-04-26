@@ -197,6 +197,81 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleForceTransfer() => ForceTransfer = !ForceTransfer;
 
+    // Crash-report telemetry. Opt-in: defaults to false. Toggling re-arms or
+    // shuts down Sentry on the running process via CrashReportingService, so
+    // the privacy choice in Settings takes effect immediately without needing
+    // an app restart.
+    [ObservableProperty] private bool _enableTelemetry;
+
+    partial void OnEnableTelemetryChanged(bool value)
+    {
+        _settings.EnableTelemetry = value;
+        _settingsService.Save(_settings);
+        Program.Crash.SetTelemetryEnabled(value);
+    }
+
+    [RelayCommand]
+    private void ToggleTelemetry() => EnableTelemetry = !EnableTelemetry;
+
+    // ── Update banner state ────────────────────────────────────
+    // Surfaced as a non-modal banner across the top of the main window when
+    // a newer release is found on GitHub. The banner stays dismissible
+    // (HideUpdateBanner) so a user mid-task isn't bullied into restarting,
+    // but the underlying download still proceeds in the background so the
+    // restart is fast when they finally click.
+    [ObservableProperty] private bool _isUpdateAvailable;
+    [ObservableProperty] private bool _isUpdateDownloading;
+    [ObservableProperty] private bool _isUpdateReady;
+    [ObservableProperty] private string _updateVersion = "";
+    [ObservableProperty] private int _updateProgress;
+
+    [RelayCommand]
+    private async Task DownloadUpdateAsync()
+    {
+        if (IsUpdateDownloading || IsUpdateReady) return;
+        IsUpdateDownloading = true;
+        UpdateProgress = 0;
+        var progress = new Progress<int>(p =>
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateProgress = p));
+        var ok = await Program.Updates.DownloadAsync(progress);
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            IsUpdateDownloading = false;
+            IsUpdateReady = ok;
+            if (ok) Log($"Update {UpdateVersion} ready. Restart to install.");
+            else    Log("Update download failed. Retry from the menu.");
+        });
+    }
+
+    [RelayCommand]
+    private void ApplyUpdate()
+    {
+        if (!IsUpdateReady) return;
+        Program.Updates.ApplyAndRestart();
+    }
+
+    [RelayCommand]
+    private void HideUpdateBanner() => IsUpdateAvailable = false;
+
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync()
+    {
+        var found = await Program.Updates.CheckAsync();
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (found)
+            {
+                UpdateVersion = Program.Updates.PendingVersion ?? "";
+                IsUpdateAvailable = true;
+                Log($"Update available: {UpdateVersion}");
+            }
+            else if (Program.Updates.IsInstalled)
+            {
+                Log("Already on the latest version.");
+            }
+        });
+    }
+
     private async Task RefreshAllPanelsAsync()
     {
         if (ActiveLeftTab != null) await NavigateAsync(ActiveLeftTab, ActiveLeftTab.Path);
@@ -231,6 +306,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // (which would refresh panels that don't exist yet on boot).
         _showHidden = _settings.ShowHidden;
         _forceTransfer = _settings.ForceTransfer;
+        _enableTelemetry = _settings.EnableTelemetry;
 
         // Load saved profiles
         var saved = _profileService.LoadProfiles();
@@ -266,6 +342,31 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         Log("InfraSftp started. Ready.");
+
+        // Fire-and-forget update poll. Runs in the background after the UI
+        // has had a chance to render so the first frame isn't blocked on a
+        // GitHub round-trip. CheckAsync swallows network errors, so this
+        // can never break startup.
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(2500);
+            try
+            {
+                if (await Program.Updates.CheckAsync())
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        UpdateVersion = Program.Updates.PendingVersion ?? "";
+                        IsUpdateAvailable = true;
+                    });
+                    // Pre-stage the download so clicking "Install & Restart"
+                    // is instant. Honour the user's bandwidth: only if the
+                    // banner is still showing (they haven't dismissed it).
+                    if (IsUpdateAvailable) await DownloadUpdateAsync();
+                }
+            }
+            catch (Exception ex) { Program.Crash.Capture(ex, "Startup update check"); }
+        });
     }
 
     // Replays AppSettings.LeftTabs / RightTabs into the live tab collections.

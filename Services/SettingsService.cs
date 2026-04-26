@@ -33,6 +33,13 @@ public class AppSettings
     // with as `--modify-window=2`.
     public bool ForceTransfer { get; set; } = false;
 
+    // Crash-report telemetry (Sentry). Opt-in by design: defaults to false so
+    // the app never sends data unless the user explicitly enables it in the
+    // Settings modal. Local logs under %APPDATA%/InfraSftp/logs are written
+    // regardless and are the privacy-preserving fallback for users who keep
+    // this off.
+    public bool EnableTelemetry { get; set; } = false;
+
     public double? WindowWidth { get; set; }
     public double? WindowHeight { get; set; }
     public int? WindowX { get; set; }

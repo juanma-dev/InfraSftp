@@ -32,10 +32,16 @@ Two-pane SFTP client (inspired by WinSCP / FileZilla). Users manage saved connec
 
 ### Services layer
 
-Two services, both owned by `MainWindowViewModel` (no DI container).
+Two scopes:
 
-- **[SftpService](Services/SftpService.cs)** — one instance per live SSH session. Wraps the synchronous SSH.NET API inside `Task.Run` so the UI thread never blocks. Surfaces progress via two events: `OnLog(string)` and `OnTransferProgress(fileName, transferred, total)`. The ViewModel stores these in `Dictionary<string, SftpService> _connections` keyed by `Profile.Id`, so multiple concurrent remote connections are possible.
-- **[ProfileService](Services/ProfileService.cs)** — persists `Profile` list to `%APPDATA%/InfraSftp/profiles.json` and passwords to `%APPDATA%/InfraSftp/vault.dat`.
+- **VM-owned (no DI container)** — created in `MainWindowViewModel`:
+  - **[SftpService](Services/SftpService.cs)** — one instance per live SSH session. Wraps the synchronous SSH.NET API inside `Task.Run` so the UI thread never blocks. Surfaces progress via two events: `OnLog(string)` and `OnTransferProgress(fileName, transferred, total)`. The ViewModel stores these in `Dictionary<string, SftpService> _connections` keyed by `Profile.Id`, so multiple concurrent remote connections are possible.
+  - **[ProfileService](Services/ProfileService.cs)** — persists `Profile` list to `%APPDATA%/InfraSftp/profiles.json` and passwords to `%APPDATA%/InfraSftp/vault.dat`.
+
+- **Process-wide** — created as `static` properties on [Program](Program.cs) before Avalonia boots, so they're armed for crashes during XAML / theme init:
+  - **[LoggingService](Services/LoggingService.cs)** — always-on local file log under `%APPDATA%/InfraSftp/logs/app-yyyyMMdd.log`. Synchronised writes; 7-day retention trimmed once per session. The privacy-preserving fallback for users who keep telemetry off.
+  - **[CrashReportingService](Services/CrashReportingService.cs)** — wraps Sentry. **Opt-in by design** (`AppSettings.EnableTelemetry` defaults `false`). Hooks `AppDomain.UnhandledException` and `TaskScheduler.UnobservedTaskException`. The hooks are wired regardless of the toggle — they always go to the local log, and forward to Sentry only when enabled. The toggle is live: `SetTelemetryEnabled(bool)` boots / disposes the SDK without restarting the app. The DSN is hard-coded in this service (Sentry DSNs are not secret — they're write-only ingest endpoints).
+  - **[UpdateService](Services/UpdateService.cs)** — wraps `Velopack.UpdateManager` with `GithubSource("https://github.com/juanma-dev/InfraSftp", token: null, prerelease: false)`. The repo is public so no token is needed. `IsInstalled` is false in dev runs (`dotnet run`), in which case `CheckAsync` short-circuits — devs aren't pestered. The VM fires `CheckAsync` 2.5 s after window load, then auto-pre-stages the download so "Install & Restart" is instant when the user clicks.
 
 ### Password vault
 

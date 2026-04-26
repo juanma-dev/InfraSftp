@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "InfraSftp/1.0.0": {
+      "InfraSftp/0.1.0": {
         "dependencies": {
           "Avalonia": "12.0.1",
           "Avalonia.Desktop": "12.0.1",
@@ -15,7 +15,9 @@
           "AvaloniaUI.DiagnosticsSupport": "2.2.1",
           "CommunityToolkit.Mvvm": "8.4.1",
           "SSH.NET": "2025.1.0",
-          "System.Security.Cryptography.ProtectedData": "8.0.0"
+          "Sentry": "4.13.0",
+          "System.Security.Cryptography.ProtectedData": "8.0.0",
+          "Velopack": "0.0.1298"
         },
         "runtime": {
           "InfraSftp.dll": {}
@@ -420,6 +422,22 @@
           }
         }
       },
+      "NuGet.Versioning/6.14.0": {
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Versioning.dll": {
+            "assemblyVersion": "6.14.0.116",
+            "fileVersion": "6.14.0.116"
+          }
+        }
+      },
+      "Sentry/4.13.0": {
+        "runtime": {
+          "lib/net8.0/Sentry.dll": {
+            "assemblyVersion": "4.13.0.0",
+            "fileVersion": "4.13.0.0"
+          }
+        }
+      },
       "SkiaSharp/3.119.3-preview.1.1": {
         "dependencies": {
           "SkiaSharp.NativeAssets.Win32": "3.119.3-preview.1.1",
@@ -573,11 +591,22 @@
             "fileVersion": "0.92.0.0"
           }
         }
+      },
+      "Velopack/0.0.1298": {
+        "dependencies": {
+          "NuGet.Versioning": "6.14.0"
+        },
+        "runtime": {
+          "lib/net8.0/Velopack.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.1298.60806"
+          }
+        }
       }
     }
   },
   "libraries": {
-    "InfraSftp/1.0.0": {
+    "InfraSftp/0.1.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -764,6 +793,20 @@
       "path": "microsoft.io.recyclablememorystream/3.0.1",
       "hashPath": "microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512"
     },
+    "NuGet.Versioning/6.14.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4v4blkhCv8mpKtfx+z0G/X0daVCzdIaHSC51GkUspugi5JIMn2Bo8xm5PdZYF0U68gOBfz/+aPWMnpRd85Jbow==",
+      "path": "nuget.versioning/6.14.0",
+      "hashPath": "nuget.versioning.6.14.0.nupkg.sha512"
+    },
+    "Sentry/4.13.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Wfw3M1WpFcrYaGzPm7QyUTfIOYkVXQ1ry6p4WYjhbLz9fPwV23SGQZTFDpdox67NHM0V0g1aoQ4YKLm4ANtEEg==",
+      "path": "sentry/4.13.0",
+      "hashPath": "sentry.4.13.0.nupkg.sha512"
+    },
     "SkiaSharp/3.119.3-preview.1.1": {
       "type": "package",
       "serviceable": true,
@@ -826,6 +869,13 @@
       "sha512": "sha512-h7IMakm0PF2jxiagoysoAjrzzLQ0UBdnSXQL5kb17YW0Fvyo12Tg96A99QkzwktWRrd7H+Uw9EzjasNLUfGYlA==",
       "path": "tmds.dbus.protocol/0.92.0",
       "hashPath": "tmds.dbus.protocol.0.92.0.nupkg.sha512"
+    },
+    "Velopack/0.0.1298": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PJ6Nm28qJ4ChsHYzgHUJ8g+DGyyHes2+bwxY709+znMhgi8fMp8M1FTF8x6pZMjnsPCWVwoMlxVEyq0NLeRZtA==",
+      "path": "velopack/0.0.1298",
+      "hashPath": "velopack.0.0.1298.nupkg.sha512"
     }
   }
 }

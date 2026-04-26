@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InfraSftp.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a649b85eeeef3f14d560f8ba9b67ee90eeea0aa6")]
 [assembly: System.Reflection.AssemblyProductAttribute("InfraSftp.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InfraSftp.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
