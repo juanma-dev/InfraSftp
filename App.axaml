@@ -1,0 +1,96 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="InfraSftp.App"
+             xmlns:local="using:InfraSftp"
+             RequestedThemeVariant="Dark">
+             <!-- Startup default is Dark. SettingsService.ApplyTheme() overrides
+                  this at launch to match the user's saved preference. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- ══════════════ DARK (default) ══════════════ -->
+                <ResourceDictionary x:Key="Dark">
+                    <!-- Surfaces -->
+                    <SolidColorBrush x:Key="WindowBgBrush" Color="#0B0F19"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#121826"/>
+                    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#1F2937"/>
+                    <SolidColorBrush x:Key="SurfaceDeepBrush" Color="#111827"/>
+                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#374151"/>
+                    <SolidColorBrush x:Key="SurfaceTranslucentBrush" Color="#121826" Opacity="0.67"/>
+                    <SolidColorBrush x:Key="SurfaceTranslucent60Brush" Color="#121826" Opacity="0.6"/>
+                    <SolidColorBrush x:Key="WindowBgTranslucentBrush" Color="#0B0F19" Opacity="0.2"/>
+
+                    <!-- Borders -->
+                    <SolidColorBrush x:Key="BorderStrongBrush" Color="#2A3444"/>
+                    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#FFFFFF" Opacity="0.08"/>
+                    <SolidColorBrush x:Key="BorderSubtleWeakBrush" Color="#FFFFFF" Opacity="0.04"/>
+
+                    <!-- Text -->
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F3F4F6"/>
+                    <SolidColorBrush x:Key="TextBrightBrush" Color="#E5E7EB"/>
+                    <SolidColorBrush x:Key="TextMutedBrush" Color="#9CA3AF"/>
+                    <SolidColorBrush x:Key="TextSubtleBrush" Color="#6B7280"/>
+                    <SolidColorBrush x:Key="TextDimBrush" Color="#4B5563"/>
+
+                    <!-- Accents -->
+                    <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="AccentStrongBrush" Color="#2563EB"/>
+                    <SolidColorBrush x:Key="AccentDeepBrush" Color="#1D4ED8"/>
+                    <SolidColorBrush x:Key="AccentSoftBrush" Color="#3B82F6" Opacity="0.33"/>
+                    <SolidColorBrush x:Key="AccentVerySoftBrush" Color="#3B82F6" Opacity="0.13"/>
+                    <SolidColorBrush x:Key="AmberBrush" Color="#F59E0B"/>
+                    <SolidColorBrush x:Key="AmberSoftBrush" Color="#F59E0B" Opacity="0.25"/>
+                    <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
+                    <SolidColorBrush x:Key="DangerStrongBrush" Color="#DC2626"/>
+                    <SolidColorBrush x:Key="DangerDeepBrush" Color="#B91C1C"/>
+                </ResourceDictionary>
+
+                <!-- ══════════════ LIGHT ══════════════ -->
+                <ResourceDictionary x:Key="Light">
+                    <!-- Surfaces -->
+                    <SolidColorBrush x:Key="WindowBgBrush" Color="#F5F7FA"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#EEF0F3"/>
+                    <SolidColorBrush x:Key="SurfaceDeepBrush" Color="#E5E8ED"/>
+                    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#CBD1D8"/>
+                    <SolidColorBrush x:Key="SurfaceTranslucentBrush" Color="#FFFFFF" Opacity="0.67"/>
+                    <SolidColorBrush x:Key="SurfaceTranslucent60Brush" Color="#FFFFFF" Opacity="0.6"/>
+                    <SolidColorBrush x:Key="WindowBgTranslucentBrush" Color="#F5F7FA" Opacity="0.2"/>
+
+                    <!-- Borders -->
+                    <SolidColorBrush x:Key="BorderStrongBrush" Color="#D1D5DB"/>
+                    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#000000" Opacity="0.1"/>
+                    <SolidColorBrush x:Key="BorderSubtleWeakBrush" Color="#000000" Opacity="0.06"/>
+
+                    <!-- Text -->
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#111827"/>
+                    <SolidColorBrush x:Key="TextBrightBrush" Color="#1F2937"/>
+                    <SolidColorBrush x:Key="TextMutedBrush" Color="#6B7280"/>
+                    <SolidColorBrush x:Key="TextSubtleBrush" Color="#9CA3AF"/>
+                    <SolidColorBrush x:Key="TextDimBrush" Color="#D1D5DB"/>
+
+                    <!-- Accents -->
+                    <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+                    <SolidColorBrush x:Key="AccentStrongBrush" Color="#1D4ED8"/>
+                    <SolidColorBrush x:Key="AccentDeepBrush" Color="#1E40AF"/>
+                    <SolidColorBrush x:Key="AccentSoftBrush" Color="#2563EB" Opacity="0.25"/>
+                    <SolidColorBrush x:Key="AccentVerySoftBrush" Color="#2563EB" Opacity="0.1"/>
+                    <SolidColorBrush x:Key="AmberBrush" Color="#D97706"/>
+                    <SolidColorBrush x:Key="AmberSoftBrush" Color="#D97706" Opacity="0.2"/>
+                    <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
+                    <SolidColorBrush x:Key="DangerStrongBrush" Color="#B91C1C"/>
+                    <SolidColorBrush x:Key="DangerDeepBrush" Color="#991B1B"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+</Application>

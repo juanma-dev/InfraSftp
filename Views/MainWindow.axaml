@@ -1,0 +1,1990 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:InfraSftp.ViewModels"
+        xmlns:models="using:InfraSftp.Models"
+        xmlns:svc="using:InfraSftp.Services"
+        xmlns:conv="using:InfraSftp.Converters"
+        x:Class="InfraSftp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="InfraSftp"
+        Width="1280" Height="800"
+        MinWidth="900" MinHeight="600"
+        Background="{DynamicResource WindowBgBrush}"
+        FontFamily="Inter, Segoe UI, sans-serif">
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+N" Command="{Binding OpenCreateModalCommand}"/>
+    <KeyBinding Gesture="Ctrl+Shift+D" Command="{Binding DisconnectAllCommand}"/>
+    <KeyBinding Gesture="F5" Command="{Binding RefreshActivePanelCommand}"/>
+    <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseActiveTabCommand}"/>
+    <KeyBinding Gesture="Ctrl+F" Command="{Binding ToggleActiveFilterCommand}"/>
+    <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding OpenSubtreeSearchCommand}"/>
+    <KeyBinding Gesture="Ctrl+H" Command="{Binding ToggleHiddenCommand}"/>
+    <KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAllInActivePanelCommand}"/>
+    <KeyBinding Gesture="Escape"  Command="{Binding ClearSelectionInActivePanelCommand}"/>
+    <KeyBinding Gesture="Ctrl+C"  Command="{Binding CopyActiveSelectionCommand}"/>
+    <KeyBinding Gesture="Ctrl+X"  Command="{Binding CutActiveSelectionCommand}"/>
+    <KeyBinding Gesture="Ctrl+V"  Command="{Binding PasteToActivePanelCommand}"/>
+  </Window.KeyBindings>
+
+  <Window.Styles>
+    <!-- ═══════════════════════════════════════════════════════════
+         DEEP SPACE DARK THEME
+         ═══════════════════════════════════════════════════════════
+         NOTE: FluentTheme's Button template has an inner ContentPresenter
+         that paints its own hover/pressed overlays, IGNORING the Button.Background
+         we set. For every custom button class we must also style
+         /template/ ContentPresenter#PART_ContentPresenter so the theme's overlay
+         is replaced by our intended colour. Same for TextBox (#PART_BorderElement).
+    -->
+
+    <!-- Primary button -->
+    <Style Selector="Button.btn">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.btn /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    <Style Selector="Button.btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentDeepBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+
+    <!-- Secondary button -->
+    <Style Selector="Button.btn-secondary">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+    </Style>
+    <Style Selector="Button.btn-secondary /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    <Style Selector="Button.btn-secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.btn-secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Danger button -->
+    <Style Selector="Button.btn-danger">
+      <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.btn-danger /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerStrongBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.btn-danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerDeepBrush}"/>
+    </Style>
+
+    <!-- Auth-method segmented picker (Password / Private Key in profile editor).
+         Two buttons sit side-by-side; the one whose backing bool is true gets
+         .auth-seg-active and renders with the accent border. -->
+    <Style Selector="Button.auth-seg">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="12,10"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.auth-seg /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    <Style Selector="Button.auth-seg:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.auth-seg.auth-seg-active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.auth-seg.auth-seg-active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentStrongBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+
+    <!-- Icon button -->
+    <Style Selector="Button.icon-btn">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Width" Value="32"/>
+      <Setter Property="Height" Value="32"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.icon-btn /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.icon-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.icon-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentStrongBrush}"/>
+    </Style>
+
+    <!-- Hamburger -->
+    <Style Selector="Button.hamburger">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Width" Value="32"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.hamburger /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="Button.hamburger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.hamburger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+    </Style>
+
+    <!-- TextBox field -->
+    <Style Selector="TextBox.field">
+      <Setter Property="Background" Value="{DynamicResource WindowBgBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="10,8"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace"/>
+      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="TextBox.field /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource WindowBgBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="TextBox.field:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource WindowBgBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="TextBox.field:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource WindowBgBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="TextBox.field:focus-within /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource WindowBgBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Tab buttons -->
+    <Style Selector="Button.tab-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="Padding" Value="14,8"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0,0,1,2"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+    </Style>
+    <Style Selector="Button.tab-btn /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    </Style>
+    <Style Selector="Button.tab-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.tab-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+    </Style>
+    <Style Selector="Button.tab-active">
+      <Setter Property="Background" Value="{DynamicResource SurfaceTranslucentBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Padding" Value="14,8"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0,0,1,2"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+    </Style>
+    <Style Selector="Button.tab-active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceTranslucentBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="BorderThickness" Value="0,0,1,2"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.tab-active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Tab close (×) — nested button inside a tab-btn. Neutral by default,
+         turns red on hover. Only rendered for remote tabs. -->
+    <Style Selector="Button.tab-close">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSubtleBrush}"/>
+      <Setter Property="Width" Value="18"/>
+      <Setter Property="Height" Value="18"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="CornerRadius" Value="9"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+    </Style>
+    <Style Selector="Button.tab-close /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="9"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextSubtleBrush}"/>
+    </Style>
+    <Style Selector="Button.tab-close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.tab-close:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource DangerDeepBrush}"/>
+    </Style>
+
+    <!-- Column header (sortable) -->
+    <Style Selector="Button.col-header">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="LetterSpacing" Value="1"/>
+      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+    </Style>
+    <Style Selector="Button.col-header /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="Button.col-header:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.col-header:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+    </Style>
+
+    <!-- File row -->
+    <Style Selector="Button.file-row">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="Padding" Value="16,7"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.file-row /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.file-row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.file-row:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <!-- Multi-select highlight. Slightly less saturated than :pressed so a row
+         can be both selected and currently being clicked without flicker. -->
+    <Style Selector="Button.file-row.selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.file-row.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <!-- Cut visual: dimmed row, mirroring Windows Explorer's faint icon
+         affordance for items in the clipboard with a Cut operation. -->
+    <Style Selector="Button.file-row.is-cut">
+      <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+
+    <!-- Profile card -->
+    <Style Selector="Button.profile-card">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="Padding" Value="10,8"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+    <Style Selector="Button.profile-card /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.profile-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.profile-card:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Menu item -->
+    <Style Selector="Button.menu-item">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="Padding" Value="10,8"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.menu-item /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.menu-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.menu-item:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentStrongBrush}"/>
+    </Style>
+
+    <!-- Bottom dock tab -->
+    <Style Selector="Button.dock-tab">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="Padding" Value="16,6"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0,0,0,2"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="LetterSpacing" Value="2"/>
+    </Style>
+    <Style Selector="Button.dock-tab /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0,0,0,2"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="Button.dock-tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Button.dock-tab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceDeepBrush}"/>
+    </Style>
+    <Style Selector="Button.dock-tab-active">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Padding" Value="16,6"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="0,0,0,2"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="LetterSpacing" Value="2"/>
+    </Style>
+    <Style Selector="Button.dock-tab-active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0,0,0,2"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.dock-tab-active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Scrollbar tweaks -->
+    <Style Selector="ScrollViewer">
+      <Setter Property="AllowAutoHide" Value="True"/>
+    </Style>
+
+    <!-- Dark ContextMenu / MenuItem -->
+    <Style Selector="ContextMenu">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="4"/>
+    </Style>
+    <Style Selector="MenuItem">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover">
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Separator">
+      <Setter Property="Background" Value="{DynamicResource BorderSubtleBrush}"/>
+      <Setter Property="Height" Value="1"/>
+      <Setter Property="Margin" Value="6,4"/>
+    </Style>
+
+    <!-- Field label — small, muted, all-caps label rendered above a TextBox.field
+         inside modals. Paired with a StackPanel(Spacing=4) wrapper per field. -->
+    <Style Selector="TextBlock.field-label">
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="LetterSpacing" Value="1.5"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+      <Setter Property="Margin" Value="2,0,0,0"/>
+    </Style>
+
+    <!-- Breadcrumb segment — compact text button with hover tint.
+         The "-last" variant is the final/active segment (non-clickable accent). -->
+    <Style Selector="Button.crumb">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}"/>
+      <Setter Property="Padding" Value="6,3"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.crumb /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="Button.crumb:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentVerySoftBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.crumb-last /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentVerySoftBrush}"/>
+      <Setter Property="TextBlock.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.crumb-last">
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <!-- Theme picker card — three of these sit side-by-side in Settings.
+         The active variant wins because it's declared later in the stylesheet
+         and `Classes.theme-card-active` toggles on top of `.theme-card`. -->
+    <Style Selector="Button.theme-card">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="14"/>
+      <Setter Property="Cursor" Value="Arrow"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.theme-card /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+    <Style Selector="Button.theme-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.theme-card-active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentVerySoftBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Button.theme-card-active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- GridSplitter — subtle track, faint blue on hover / while dragging.
+         ResizeDirection is Auto: Width<Height => Columns; Height<Width => Rows. -->
+    <Style Selector="GridSplitter.splitter-v">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="VerticalAlignment" Value="Stretch"/>
+      <Setter Property="Cursor" Value="SizeWestEast"/>
+      <Setter Property="MinWidth" Value="5"/>
+    </Style>
+    <Style Selector="GridSplitter.splitter-v:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+    </Style>
+    <Style Selector="GridSplitter.splitter-v:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <Style Selector="GridSplitter.splitter-h">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="VerticalAlignment" Value="Stretch"/>
+      <Setter Property="Cursor" Value="SizeNorthSouth"/>
+      <Setter Property="MinHeight" Value="5"/>
+    </Style>
+    <Style Selector="GridSplitter.splitter-h:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+    </Style>
+    <Style Selector="GridSplitter.splitter-h:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+  </Window.Styles>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN LAYOUT
+       All four regions (sidebar | left panel | right panel | bottom dock)
+       are separated by GridSplitters so the user can resize freely. Row /
+       column minimums prevent collapsing any region to zero.
+       ═══════════════════════════════════════════════════════════ -->
+  <Grid>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>                      <!-- titlebar -->
+        <RowDefinition Height="*" MinHeight="200"/>         <!-- content -->
+        <RowDefinition Height="Auto"/>                      <!-- h-splitter -->
+        <RowDefinition Height="200" MinHeight="80"/>        <!-- bottom dock -->
+      </Grid.RowDefinitions>
+
+    <!-- TITLEBAR -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" Height="38">
+      <Grid ColumnDefinitions="Auto,Auto,*">
+        <Button Grid.Column="0" Classes="hamburger" Content="☰" Click="ToggleMenu" Margin="6,0,0,0"/>
+        <TextBlock Grid.Column="1" Text="InfraSftp" VerticalAlignment="Center" Margin="8,0"
+                   FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextMutedBrush}"/>
+        <TextBlock Grid.Column="2" Text="" HorizontalAlignment="Right" VerticalAlignment="Center"
+                   Margin="0,0,12,0" FontSize="11" Foreground="{DynamicResource TextSubtleBrush}"
+                   x:Name="StatusText"/>
+      </Grid>
+    </Border>
+
+    <!-- HORIZONTAL SPLITTER (between content & bottom dock) -->
+    <GridSplitter Grid.Row="2" Classes="splitter-h"/>
+
+    <!-- BOTTOM DOCK -->
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="{DynamicResource WindowBgBrush}">
+          <Button Content="LOG" Click="SwitchToLog"
+                  Classes.dock-tab="{Binding !IsLogTab}"
+                  Classes.dock-tab-active="{Binding IsLogTab}"/>
+          <Button Content="TRANSFERS" Click="SwitchToTransfers"
+                  Classes.dock-tab="{Binding !IsTransfersTab}"
+                  Classes.dock-tab-active="{Binding IsTransfersTab}"/>
+        </StackPanel>
+
+        <!-- Log view -->
+        <ScrollViewer x:Name="LogScroll" IsVisible="{Binding IsLogTab}">
+          <ItemsControl ItemsSource="{Binding LogMessages}" Margin="12,8">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" FontFamily="Cascadia Code, Consolas, monospace"
+                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0,1"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Transfers view -->
+        <ScrollViewer IsVisible="{Binding IsTransfersTab}">
+          <ItemsControl ItemsSource="{Binding Transfers}" Margin="8,6">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="models:TransferItem">
+                <Border Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                        CornerRadius="6" Padding="10,8" Margin="0,0,0,4">
+                  <Grid ColumnDefinitions="28,*,Auto" RowDefinitions="Auto,Auto">
+                    <!-- Status icon -->
+                    <TextBlock Grid.Column="0" Grid.RowSpan="2" Text="{Binding StatusIcon}"
+                               FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"
+                               Foreground="{Binding StatusColor}"/>
+
+                    <!-- File name + source/dest -->
+                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Vertical" Spacing="1">
+                      <TextBlock Text="{Binding FileName}" FontSize="12" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{Binding DestPath}" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}"
+                                 FontFamily="Cascadia Code, Consolas, monospace"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <!-- Status / progress text -->
+                    <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Vertical"
+                                HorizontalAlignment="Right" Spacing="1">
+                      <TextBlock Text="{Binding StatusDisplay}" FontSize="11" FontWeight="SemiBold"
+                                 Foreground="{Binding StatusColor}" HorizontalAlignment="Right"/>
+                      <TextBlock Text="{Binding ProgressDisplay}" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}"
+                                 HorizontalAlignment="Right"/>
+                    </StackPanel>
+
+                    <!-- Progress bar -->
+                    <ProgressBar Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1"
+                                 Minimum="0" Maximum="100" Value="{Binding ProgressPercent}"
+                                 Height="3" Margin="0,6,0,0"
+                                 Background="{DynamicResource SurfaceAltBrush}" Foreground="{Binding StatusColor}"
+                                 CornerRadius="2"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- MAIN AREA -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="240" MinWidth="180"/>  <!-- sidebar -->
+        <ColumnDefinition Width="Auto"/>                 <!-- v-splitter -->
+        <ColumnDefinition Width="*" MinWidth="240"/>     <!-- left panel -->
+        <ColumnDefinition Width="Auto"/>                 <!-- v-splitter -->
+        <ColumnDefinition Width="*" MinWidth="240"/>     <!-- right panel -->
+      </Grid.ColumnDefinitions>
+
+      <!-- SIDEBAR -->
+      <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,1,0" Padding="16">
+        <DockPanel>
+          <!-- Sidebar header -->
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+            <TextBlock Text="CONNECTIONS" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"
+                       VerticalAlignment="Center" LetterSpacing="2"/>
+            <Button Grid.Column="1" Classes="icon-btn" Content="＋" Click="OpenCreateModal"/>
+          </Grid>
+
+          <!-- Search box -->
+          <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <TextBox Classes="field" Text="{Binding ProfileSearchText}"
+                     PlaceholderText="🔍 Search by name, host, user…" FontSize="12"
+                     FontFamily="Inter, Segoe UI, sans-serif"/>
+            <Button Classes="hamburger" Content="✕" Width="22" Height="22" FontSize="11"
+                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"
+                    Command="{Binding ClearProfileSearchCommand}"
+                    IsVisible="{Binding ProfileSearchText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          </Grid>
+
+          <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0,0,0,12"/>
+
+          <!-- Profiles list -->
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding FilteredProfiles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:Profile">
+                  <Button Classes="profile-card"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ConnectToProfileCommand}"
+                          CommandParameter="{Binding}">
+                    <Button.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="🔌 Connect"
+                                  Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ConnectToProfileCommand}"
+                                  CommandParameter="{Binding}"/>
+                        <MenuItem Header="✏ Edit…"
+                                  Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenEditModalCommand}"
+                                  CommandParameter="{Binding}"/>
+                        <Separator/>
+                        <MenuItem Header="🗑 Delete"
+                                  Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteProfileCommand}"
+                                  CommandParameter="{Binding}"/>
+                      </ContextMenu>
+                    </Button.ContextMenu>
+                    <Grid ColumnDefinitions="40,*,30">
+                      <Grid Grid.Column="0" HorizontalAlignment="Left">
+                        <Border Background="{DynamicResource AccentBrush}" CornerRadius="8" Width="32" Height="32">
+                          <TextBlock Text="{Binding Initials}" Foreground="White" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <!-- Connection-status dot (bottom-right of avatar) -->
+                        <Ellipse Width="10" Height="10"
+                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                 Margin="0,0,-2,-2"
+                                 Fill="#4ADE80" Stroke="{DynamicResource SurfaceBrush}" StrokeThickness="2"
+                                 IsVisible="{Binding IsConnected}"
+                                 ToolTip.Tip="Connected"/>
+                      </Grid>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding User}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                      </StackPanel>
+                      <Button Grid.Column="2" Classes="icon-btn" Content="⋮" Background="Transparent" BorderThickness="0"
+                              ToolTip.Tip="Edit profile"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenEditModalCommand}"
+                              CommandParameter="{Binding}"/>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <!-- VERTICAL SPLITTER (sidebar ↔ left panel) -->
+      <GridSplitter Grid.Column="1" Classes="splitter-v"/>
+
+      <!-- LEFT PANEL -->
+      <Border x:Name="LeftPanelBorder" Grid.Column="2" Background="{DynamicResource SurfaceTranslucent60Brush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                Margin="12,16,6,16"
+                CornerRadius="12" ClipToBounds="True"
+                BoxShadow="0 8 32 0 #00000066"
+                Focusable="True" GotFocus="OnLeftPanelFocus"
+                PointerPressed="OnLeftPanelFocus"
+                DragDrop.AllowDrop="True">
+          <DockPanel>
+            <!-- Tab strip: MinHeight so it stays visible as a drop target even when empty -->
+            <Border DockPanel.Dock="Top" MinHeight="38" Background="{DynamicResource WindowBgTranslucentBrush}"
+                    BorderBrush="{DynamicResource BorderSubtleWeakBrush}" BorderThickness="0,0,0,1">
+              <Grid>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding LeftTabs}" x:Name="LeftTabsPanel">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:TabItem">
+                        <Button Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectLeftTabCommand}"
+                                CommandParameter="{Binding}"
+                                Classes="tab-btn">
+                          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                                     IsVisible="{Binding IsRemote}"
+                                     Fill="{Binding IsConnected, Converter={x:Static conv:BoolToStatusBrushConverter.Instance}}"
+                                     ToolTip.Tip="{Binding IsConnected, Converter={x:Static conv:BoolToStatusTextConverter.Instance}}"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                            <Button Classes="tab-close" Content="✕"
+                                    IsVisible="{Binding IsRemote}"
+                                    ToolTip.Tip="Close tab"
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DisconnectTabCommand}"
+                                    CommandParameter="{Binding}"/>
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+                <TextBlock Text="No tabs — connect or drag one here"
+                           IsVisible="{Binding HasNoLeftTabs}"
+                           FontSize="11" FontStyle="Italic" Foreground="{DynamicResource TextDimBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+
+            <!-- MAIN CONTENT -->
+            <DockPanel>
+              <!-- PATH BAR (breadcrumbs | edit mode) -->
+              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,8">
+              <Border Grid.Column="0" IsVisible="{Binding !IsLeftPathEditing}"
+                      Background="{DynamicResource WindowBgBrush}"
+                      BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                      CornerRadius="6" Padding="4,2" MinHeight="32">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding ActiveLeftTab.Segments}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="models:PathSegment">
+                        <StackPanel Orientation="Horizontal">
+                          <Button Classes="crumb" Classes.crumb-last="{Binding IsLast}"
+                                  Content="{Binding Name}"
+                                  Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateLeftToPathCommand}"
+                                  CommandParameter="{Binding FullPath}"/>
+                          <TextBlock Text="›" IsVisible="{Binding !IsLast}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     VerticalAlignment="Center" Margin="1,0" FontSize="13"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+              <TextBox Grid.Column="0" IsVisible="{Binding IsLeftPathEditing}"
+                       Text="{Binding LeftPathEditText}" Classes="field"
+                       KeyDown="OnLeftPathKeyDown" VerticalAlignment="Center"/>
+              <Button Grid.Column="1" Classes="icon-btn" Content="✎"
+                      Width="26" Height="26" FontSize="13" Margin="6,0,0,0"
+                      IsVisible="{Binding !IsLeftPathEditing}"
+                      Command="{Binding BeginEditLeftPathCommand}"
+                      ToolTip.Tip="Edit path"/>
+            </Grid>
+
+            <!-- FILTER BAR (Ctrl+F) -->
+            <Border DockPanel.Dock="Top" IsVisible="{Binding ActiveLeftTab.IsFilterActive}"
+                    Background="{DynamicResource AccentVerySoftBrush}"
+                    BorderBrush="{DynamicResource AccentSoftBrush}" BorderThickness="0,0,0,1"
+                    Padding="12,6">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"
+                           Foreground="{DynamicResource AccentBrush}"/>
+                <TextBox Grid.Column="1" Classes="field"
+                         Text="{Binding ActiveLeftTab.FilterText}"
+                         PlaceholderText="Filter files by name…"
+                         KeyDown="OnLeftFilterKeyDown"
+                         AttachedToVisualTree="OnLeftFilterAttached"/>
+                <Button Grid.Column="2" Classes="icon-btn" Content="🌳"
+                        Width="26" Height="26" FontSize="13" Margin="6,0,0,0"
+                        Command="{Binding OpenSubtreeSearchCommand}"
+                        IsVisible="{Binding ActiveLeftTab.IsRemote}"
+                        ToolTip.Tip="Search subtree recursively (Ctrl+Shift+F)"/>
+                <Button Grid.Column="3" Classes="icon-btn" Content="✕"
+                        Width="26" Height="26" FontSize="11" Margin="6,0,0,0"
+                        Command="{Binding CloseLeftFilterCommand}"
+                        ToolTip.Tip="Close filter (Esc)"/>
+              </Grid>
+            </Border>
+
+            <!-- Column headers (Name / Size / Modified) -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="30,*,80,90" Background="{DynamicResource WindowBgBrush}"
+                  Margin="0,4,0,0">
+              <Border Grid.Column="0" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="0,0,0,1"/>
+              <Button Grid.Column="1" Classes="col-header"
+                      Command="{Binding SortLeftCommand}" CommandParameter="Name">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="NAME"/>
+                  <TextBlock Text="{Binding ActiveLeftTab.NameSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="2" Classes="col-header" HorizontalContentAlignment="Right"
+                      Command="{Binding SortLeftCommand}" CommandParameter="Size">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                  <TextBlock Text="SIZE"/>
+                  <TextBlock Text="{Binding ActiveLeftTab.SizeSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="3" Classes="col-header" HorizontalContentAlignment="Right"
+                      Command="{Binding SortLeftCommand}" CommandParameter="Modified">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                  <TextBlock Text="MODIFIED"/>
+                  <TextBlock Text="{Binding ActiveLeftTab.ModifiedSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+
+            <Border Background="#00000033" BorderBrush="{DynamicResource BorderSubtleWeakBrush}" BorderThickness="0,1,0,0">
+              <Border.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="📋 Paste"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PasteToPanelCommand}"
+                            CommandParameter="Left"
+                            InputGesture="Ctrl+V"
+                            IsEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).HasClipboardEntries}"/>
+                  <Separator/>
+                  <MenuItem Header="📁 New folder"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCreateFolderCommand}"
+                            CommandParameter="Left"/>
+                  <MenuItem Header="🔄 Refresh"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RefreshActivePanelCommand}"
+                            InputGesture="F5"/>
+                  <Separator/>
+                  <MenuItem Header="✅ Select all"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectAllInActivePanelCommand}"
+                            InputGesture="Ctrl+A"/>
+                </ContextMenu>
+              </Border.ContextMenu>
+              <ScrollViewer x:Name="LeftScrollViewer" PointerPressed="OnListPointerPressed" PointerMoved="OnListPointerMoved" PointerReleased="OnListPointerReleased" Background="Transparent">
+                <Grid>
+                  <ItemsControl x:Name="LeftFilesItems" ItemsSource="{Binding ActiveLeftTab.VisibleFiles}" Padding="0,0,0,150">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:FileNode">
+                      <Button Classes="file-row"
+                              Classes.selected="{Binding IsSelected}"
+                              Classes.is-cut="{Binding IsCut}"
+                              DoubleTapped="OnFileDoubleTapped">
+                        <Button.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="📂 Open"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).FileActionCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="↔ Transfer to other panel"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TransferFileCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📏 Compute size"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ComputeFolderSizeCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <Separator/>
+                            <MenuItem Header="✂️ Cut"
+                                      InputGesture="Ctrl+X"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CutToClipboardCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📋 Copy"
+                                      InputGesture="Ctrl+C"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CopyToClipboardCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📋 Paste into folder"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PasteIntoFolderCommand}"
+                                      CommandParameter="{Binding}"
+                                      IsEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).HasClipboardEntries}"/>
+                            <Separator/>
+                            <MenuItem Header="📋 Copy path" Click="OnCopyPathClick"/>
+                            <MenuItem Header="🪪 Copy name" Click="OnCopyNameClick"/>
+                            <MenuItem Header="📁 Reveal in Explorer"
+                                      IsVisible="{Binding IsLocalFile}"
+                                      Click="OnRevealInExplorerClick"/>
+                            <Separator/>
+                            <MenuItem Header="✏ Rename…"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenRenameCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="🗑 Delete"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteFileCommand}"
+                                      CommandParameter="{Binding}"/>
+                          </ContextMenu>
+                        </Button.ContextMenu>
+                        <Grid ColumnDefinitions="30,*,80,90">
+                          <TextBlock Grid.Column="0" Text="{Binding Icon}" VerticalAlignment="Center"
+                                     FontSize="15" HorizontalAlignment="Center"
+                                     Foreground="{Binding IconColor, Converter={x:Static conv:HexToBrushConverter.Instance}}"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextSubtleBrush}" HorizontalAlignment="Right"/>
+                          <TextBlock Grid.Column="3" Text="{Binding ModifiedDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextSubtleBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Canvas IsHitTestVisible="False">
+                  <Rectangle x:Name="LeftDragRect" Fill="#400078D7" Stroke="#0078D7" StrokeThickness="1" IsVisible="False" />
+                </Canvas>
+              </Grid>
+              </ScrollViewer>
+              </Border>
+            </DockPanel>
+          </DockPanel>
+        </Border>
+
+      <!-- VERTICAL SPLITTER (left ↔ right panel) -->
+      <GridSplitter Grid.Column="3" Classes="splitter-v"/>
+
+      <!-- RIGHT PANEL -->
+      <Border x:Name="RightPanelBorder" Grid.Column="4" Background="{DynamicResource SurfaceTranslucent60Brush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                Margin="6,16,16,16"
+                CornerRadius="12" ClipToBounds="True"
+                BoxShadow="0 8 32 0 #00000066"
+                Focusable="True" GotFocus="OnRightPanelFocus"
+                PointerPressed="OnRightPanelFocus"
+                DragDrop.AllowDrop="True">
+          <DockPanel>
+            <!-- Tab strip: MinHeight so it stays visible as a drop target even when empty -->
+            <Border DockPanel.Dock="Top" MinHeight="38" Background="{DynamicResource WindowBgTranslucentBrush}"
+                    BorderBrush="{DynamicResource BorderSubtleWeakBrush}" BorderThickness="0,0,0,1">
+              <Grid>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding RightTabs}" x:Name="RightTabsPanel">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:TabItem">
+                        <Button Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectRightTabCommand}"
+                                CommandParameter="{Binding}"
+                                Classes="tab-btn">
+                          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                                     IsVisible="{Binding IsRemote}"
+                                     Fill="{Binding IsConnected, Converter={x:Static conv:BoolToStatusBrushConverter.Instance}}"
+                                     ToolTip.Tip="{Binding IsConnected, Converter={x:Static conv:BoolToStatusTextConverter.Instance}}"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                            <Button Classes="tab-close" Content="✕"
+                                    IsVisible="{Binding IsRemote}"
+                                    ToolTip.Tip="Close tab"
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DisconnectTabCommand}"
+                                    CommandParameter="{Binding}"/>
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+                <TextBlock Text="No tabs — drag a connection here or open one from the sidebar"
+                           IsVisible="{Binding HasNoRightTabs}"
+                           FontSize="11" FontStyle="Italic" Foreground="{DynamicResource TextDimBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+
+            <!-- MAIN CONTENT -->
+            <DockPanel>
+              <!-- PATH BAR (breadcrumbs | edit mode) -->
+              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,8">
+              <Border Grid.Column="0" IsVisible="{Binding !IsRightPathEditing}"
+                      Background="{DynamicResource WindowBgBrush}"
+                      BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                      CornerRadius="6" Padding="4,2" MinHeight="32">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding ActiveRightTab.Segments}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate DataType="models:PathSegment">
+                        <StackPanel Orientation="Horizontal">
+                          <Button Classes="crumb" Classes.crumb-last="{Binding IsLast}"
+                                  Content="{Binding Name}"
+                                  Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateRightToPathCommand}"
+                                  CommandParameter="{Binding FullPath}"/>
+                          <TextBlock Text="›" IsVisible="{Binding !IsLast}"
+                                     Foreground="{DynamicResource TextMutedBrush}"
+                                     VerticalAlignment="Center" Margin="1,0" FontSize="13"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+              <TextBox Grid.Column="0" IsVisible="{Binding IsRightPathEditing}"
+                       Text="{Binding RightPathEditText}" Classes="field"
+                       KeyDown="OnRightPathKeyDown" VerticalAlignment="Center"/>
+              <Button Grid.Column="1" Classes="icon-btn" Content="✎"
+                      Width="26" Height="26" FontSize="13" Margin="6,0,0,0"
+                      IsVisible="{Binding !IsRightPathEditing}"
+                      Command="{Binding BeginEditRightPathCommand}"
+                      ToolTip.Tip="Edit path"/>
+            </Grid>
+
+            <!-- FILTER BAR (Ctrl+F) -->
+            <Border DockPanel.Dock="Top" IsVisible="{Binding ActiveRightTab.IsFilterActive}"
+                    Background="{DynamicResource AccentVerySoftBrush}"
+                    BorderBrush="{DynamicResource AccentSoftBrush}" BorderThickness="0,0,0,1"
+                    Padding="12,6">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center" Margin="0,0,8,0"
+                           Foreground="{DynamicResource AccentBrush}"/>
+                <TextBox Grid.Column="1" Classes="field"
+                         Text="{Binding ActiveRightTab.FilterText}"
+                         PlaceholderText="Filter files by name…"
+                         KeyDown="OnRightFilterKeyDown"
+                         AttachedToVisualTree="OnRightFilterAttached"/>
+                <Button Grid.Column="2" Classes="icon-btn" Content="🌳"
+                        Width="26" Height="26" FontSize="13" Margin="6,0,0,0"
+                        Command="{Binding OpenSubtreeSearchCommand}"
+                        IsVisible="{Binding ActiveRightTab.IsRemote}"
+                        ToolTip.Tip="Search subtree recursively (Ctrl+Shift+F)"/>
+                <Button Grid.Column="3" Classes="icon-btn" Content="✕"
+                        Width="26" Height="26" FontSize="11" Margin="6,0,0,0"
+                        Command="{Binding CloseRightFilterCommand}"
+                        ToolTip.Tip="Close filter (Esc)"/>
+              </Grid>
+            </Border>
+
+            <!-- Column headers (Name / Size / Modified) -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="30,*,80,90" Background="{DynamicResource WindowBgBrush}"
+                  Margin="0,4,0,0">
+              <Border Grid.Column="0" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="0,0,0,1"/>
+              <Button Grid.Column="1" Classes="col-header"
+                      Command="{Binding SortRightCommand}" CommandParameter="Name">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="NAME"/>
+                  <TextBlock Text="{Binding ActiveRightTab.NameSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="2" Classes="col-header" HorizontalContentAlignment="Right"
+                      Command="{Binding SortRightCommand}" CommandParameter="Size">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                  <TextBlock Text="SIZE"/>
+                  <TextBlock Text="{Binding ActiveRightTab.SizeSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="3" Classes="col-header" HorizontalContentAlignment="Right"
+                      Command="{Binding SortRightCommand}" CommandParameter="Modified">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                  <TextBlock Text="MODIFIED"/>
+                  <TextBlock Text="{Binding ActiveRightTab.ModifiedSortGlyph}" Foreground="{DynamicResource AccentBrush}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+
+            <Border Background="#00000033" BorderBrush="{DynamicResource BorderSubtleWeakBrush}" BorderThickness="0,1,0,0">
+              <Border.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="📋 Paste"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PasteToPanelCommand}"
+                            CommandParameter="Right"
+                            InputGesture="Ctrl+V"
+                            IsEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).HasClipboardEntries}"/>
+                  <Separator/>
+                  <MenuItem Header="📁 New folder"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCreateFolderCommand}"
+                            CommandParameter="Right"/>
+                  <MenuItem Header="🔄 Refresh"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RefreshActivePanelCommand}"
+                            InputGesture="F5"/>
+                  <Separator/>
+                  <MenuItem Header="✅ Select all"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectAllInActivePanelCommand}"
+                            InputGesture="Ctrl+A"/>
+                </ContextMenu>
+              </Border.ContextMenu>
+              <ScrollViewer x:Name="RightScrollViewer" PointerPressed="OnListPointerPressed" PointerMoved="OnListPointerMoved" PointerReleased="OnListPointerReleased" Background="Transparent">
+                <Grid>
+                  <ItemsControl x:Name="RightFilesItems" ItemsSource="{Binding ActiveRightTab.VisibleFiles}" Padding="0,0,0,150">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:FileNode">
+                      <Button Classes="file-row"
+                              Classes.selected="{Binding IsSelected}"
+                              Classes.is-cut="{Binding IsCut}"
+                              DoubleTapped="OnFileDoubleTapped">
+                        <Button.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="📂 Open"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).FileActionCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="↔ Transfer to other panel"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).TransferFileCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📏 Compute size"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ComputeFolderSizeCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <Separator/>
+                            <MenuItem Header="✂️ Cut"
+                                      InputGesture="Ctrl+X"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CutToClipboardCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📋 Copy"
+                                      InputGesture="Ctrl+C"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CopyToClipboardCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="📋 Paste into folder"
+                                      IsVisible="{Binding IsDirectory}"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PasteIntoFolderCommand}"
+                                      CommandParameter="{Binding}"
+                                      IsEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).HasClipboardEntries}"/>
+                            <Separator/>
+                            <MenuItem Header="📋 Copy path" Click="OnCopyPathClick"/>
+                            <MenuItem Header="🪪 Copy name" Click="OnCopyNameClick"/>
+                            <MenuItem Header="📁 Reveal in Explorer"
+                                      IsVisible="{Binding IsLocalFile}"
+                                      Click="OnRevealInExplorerClick"/>
+                            <Separator/>
+                            <MenuItem Header="✏ Rename…"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenRenameCommand}"
+                                      CommandParameter="{Binding}"/>
+                            <MenuItem Header="🗑 Delete"
+                                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteFileCommand}"
+                                      CommandParameter="{Binding}"/>
+                          </ContextMenu>
+                        </Button.ContextMenu>
+                        <Grid ColumnDefinitions="30,*,80,90">
+                          <TextBlock Grid.Column="0" Text="{Binding Icon}" VerticalAlignment="Center"
+                                     FontSize="15" HorizontalAlignment="Center"
+                                     Foreground="{Binding IconColor, Converter={x:Static conv:HexToBrushConverter.Instance}}"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                          <TextBlock Grid.Column="2" Text="{Binding SizeDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextSubtleBrush}" HorizontalAlignment="Right"/>
+                          <TextBlock Grid.Column="3" Text="{Binding ModifiedDisplay}" VerticalAlignment="Center" Foreground="{DynamicResource TextSubtleBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Canvas IsHitTestVisible="False">
+                  <Rectangle x:Name="RightDragRect" Fill="#400078D7" Stroke="#0078D7" StrokeThickness="1" IsVisible="False" />
+                </Canvas>
+              </Grid>
+              </ScrollViewer>
+              </Border>
+            </DockPanel>
+          </DockPanel>
+        </Border>
+      </Grid>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Create/Edit Profile -->
+    <Grid IsVisible="{Binding IsModalOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{Binding ModalMode, StringFormat='\{0\} Connection'}"
+                     FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+          <StackPanel Spacing="4">
+            <TextBlock Classes="field-label" Text="NAME"/>
+            <TextBox Classes="field" PlaceholderText="My Server (optional)" Text="{Binding ModalName}"/>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,110">
+            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
+              <TextBlock Classes="field-label" Text="HOST / IP"/>
+              <TextBox Classes="field" PlaceholderText="example.com or 192.168.1.10" Text="{Binding ModalHost}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Classes="field-label" Text="PORT"/>
+              <TextBox Classes="field" PlaceholderText="22" Text="{Binding ModalPort}"/>
+            </StackPanel>
+          </Grid>
+
+          <StackPanel Spacing="4">
+            <TextBlock Classes="field-label" Text="USERNAME"/>
+            <TextBox Classes="field" PlaceholderText="root" Text="{Binding ModalUser}"/>
+          </StackPanel>
+
+          <!-- Auth method picker (segmented control style) -->
+          <StackPanel Spacing="4">
+            <TextBlock Classes="field-label" Text="AUTHENTICATION"/>
+            <Grid ColumnDefinitions="*,*" >
+              <Button Grid.Column="0" HorizontalAlignment="Stretch"
+                      Classes="auth-seg" Classes.auth-seg-active="{Binding ModalIsPasswordAuth}"
+                      Command="{Binding SelectAuthPasswordCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                  <TextBlock Text="🔑" FontSize="13"/>
+                  <TextBlock Text="Password" FontSize="12"/>
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="1" HorizontalAlignment="Stretch"
+                      Classes="auth-seg" Classes.auth-seg-active="{Binding ModalIsKeyAuth}"
+                      Command="{Binding SelectAuthKeyCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                  <TextBlock Text="🗝" FontSize="13"/>
+                  <TextBlock Text="Private key" FontSize="12"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+          </StackPanel>
+
+          <!-- Password mode: simple secret field -->
+          <StackPanel Spacing="4" IsVisible="{Binding ModalIsPasswordAuth}">
+            <TextBlock Classes="field-label" Text="PASSWORD"/>
+            <TextBox Classes="field" PlaceholderText="••••••••" PasswordChar="•" Text="{Binding ModalPass}"/>
+          </StackPanel>
+
+          <!-- Key mode: file path with browse + optional passphrase -->
+          <StackPanel Spacing="10" IsVisible="{Binding ModalIsKeyAuth}">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="field-label" Text="PRIVATE KEY FILE"/>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Classes="field"
+                         PlaceholderText="C:\Users\me\.ssh\id_ed25519"
+                         Text="{Binding ModalKeyPath}"/>
+                <Button Grid.Column="1" Classes="btn-secondary" Content="Browse…"
+                        Margin="6,0,0,0" Click="OnBrowseKeyFile"/>
+              </Grid>
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Classes="field-label" Text="PASSPHRASE (LEAVE EMPTY IF NONE)"/>
+              <TextBox Classes="field" PlaceholderText="••••••••" PasswordChar="•" Text="{Binding ModalPass}"/>
+            </StackPanel>
+          </StackPanel>
+
+          <Grid ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+            <Button Grid.Column="0" Classes="btn-danger" Content="Delete" HorizontalAlignment="Left"
+                    IsVisible="{Binding EditingProfile, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Command="{Binding DeleteProfileCommand}" CommandParameter="{Binding EditingProfile}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+              <Button Classes="btn-secondary" Content="Cancel" Command="{Binding CloseModalCommand}" />
+              <Button Classes="btn-secondary" Content="Save" Command="{Binding SaveProfileCommand}" />
+              <Button Classes="btn" Content="Save &amp; Connect" Command="{Binding SaveAndConnectCommand}" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- HAMBURGER MENU DROPDOWN -->
+    <Grid IsVisible="{Binding IsMenuOpen}" ZIndex="90">
+      <!-- Dismiss layer: Border (not Button) so the FluentTheme pointerover overlay
+           doesn't darken the entire window while the menu is open. -->
+      <Border Background="Transparent"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              PointerPressed="OnDismissMenuLayer"/>
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8"
+              HorizontalAlignment="Left" VerticalAlignment="Top"
+              Margin="6,40,0,0" Padding="6" Width="240"
+              BoxShadow="0 8 24 0 #00000099">
+        <StackPanel Spacing="2">
+          <Button Classes="menu-item" Command="{Binding MenuNewConnectionCommand}">
+            <Grid ColumnDefinitions="24,*,Auto">
+              <TextBlock Grid.Column="0" Text="➕" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="New Connection" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="2" Text="Ctrl+N" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Button Classes="menu-item" Command="{Binding MenuRefreshAllCommand}">
+            <Grid ColumnDefinitions="24,*,Auto">
+              <TextBlock Grid.Column="0" Text="🔄" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Refresh All Panels" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="2" Text="F5" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Button Classes="menu-item" Command="{Binding MenuDisconnectAllCommand}">
+            <Grid ColumnDefinitions="24,*,Auto">
+              <TextBlock Grid.Column="0" Text="⏻" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Disconnect All" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="2" Text="Ctrl+Shift+D" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="4,4"/>
+          <Button Classes="menu-item" Click="OnExportProfilesClick">
+            <Grid ColumnDefinitions="24,*">
+              <TextBlock Grid.Column="0" Text="📤" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Export profiles…" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Button Classes="menu-item" Click="OnImportProfilesClick">
+            <Grid ColumnDefinitions="24,*">
+              <TextBlock Grid.Column="0" Text="📥" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Import profiles…" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="4,4"/>
+          <Button Classes="menu-item" Command="{Binding ToggleHiddenCommand}">
+            <Grid ColumnDefinitions="24,*,Auto">
+              <TextBlock Grid.Column="0" Text="{Binding ShowHidden, Converter={x:Static conv:BoolToCheckConverter.Instance}}"
+                         FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Show hidden files" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="2" Text="Ctrl+H" FontSize="10"
+                         Foreground="{DynamicResource TextSubtleBrush}" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="4,4"/>
+          <Button Classes="menu-item" Command="{Binding OpenSettingsCommand}">
+            <Grid ColumnDefinitions="24,*">
+              <TextBlock Grid.Column="0" Text="⚙" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Configuración" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Button Classes="menu-item" Command="{Binding OpenShortcutsCommand}">
+            <Grid ColumnDefinitions="24,*">
+              <TextBlock Grid.Column="0" Text="⌨" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="Keyboard Shortcuts" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+          <Button Classes="menu-item" Command="{Binding OpenAboutCommand}">
+            <Grid ColumnDefinitions="24,*">
+              <TextBlock Grid.Column="0" Text="ℹ" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="About InfraSftp" VerticalAlignment="Center"/>
+            </Grid>
+          </Button>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: About -->
+    <Grid IsVisible="{Binding IsAboutOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="InfraSftp" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="A cross-platform SFTP client built with Avalonia UI"
+                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"
+                     TextWrapping="Wrap" TextAlignment="Center"/>
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0,4"/>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Hecho por Juanma" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="© 2026 Juanma" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center"/>
+          </StackPanel>
+          <Border Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="6"
+                  Padding="12">
+            <StackPanel Spacing="6">
+              <TextBlock Text="License" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"
+                         Text="Distributed under the GNU General Public License v3.0 (GPLv3). This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the terms of the GPL. See the LICENSE file in the project root, or visit https://www.gnu.org/licenses/gpl-3.0.html"/>
+            </StackPanel>
+          </Border>
+          <Button Classes="btn" Content="Close" Command="{Binding CloseAboutCommand}"
+                  HorizontalAlignment="Right" Margin="0,4,0,0"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Password Prompt -->
+    <Grid IsVisible="{Binding IsPasswordPromptOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="380" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="🔑 Enter Password" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding PasswordPromptProfile.Host, StringFormat='{}Connect to {0}'}"
+                     Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                     FontFamily="Cascadia Code, Consolas, monospace" />
+
+          <StackPanel Spacing="4">
+            <TextBlock Classes="field-label" Text="PASSWORD"/>
+            <TextBox Classes="field" PlaceholderText="••••••••" PasswordChar="•"
+                     Text="{Binding PasswordPromptPass}"/>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Classes="btn-secondary" Content="Cancel" Command="{Binding CancelPasswordPromptCommand}" />
+            <Button Classes="btn" Content="Connect" Command="{Binding ConnectWithPasswordPromptCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Host Key Verification (TOFU) -->
+    <!-- Two flavours, switched by HostKeyPromptIsMismatch:
+         · unknown host  → neutral, asks the user to confirm a first-time fingerprint
+         · mismatch      → red, shows stored vs received and treats Accept as a key change -->
+    <Grid IsVisible="{Binding IsHostKeyPromptOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="520" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <!-- Title: neutral when first-time, red when mismatch -->
+          <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding !HostKeyPromptIsMismatch}">
+            <TextBlock Text="🔐" FontSize="20" VerticalAlignment="Center"/>
+            <TextBlock Text="Verify host fingerprint" FontSize="16" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HostKeyPromptIsMismatch}">
+            <TextBlock Text="⚠" FontSize="22" Foreground="#EF4444" VerticalAlignment="Center"/>
+            <TextBlock Text="Host key has CHANGED" FontSize="16" FontWeight="SemiBold"
+                       Foreground="#EF4444" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <!-- First-time copy -->
+          <TextBlock IsVisible="{Binding !HostKeyPromptIsMismatch}"
+                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                     Text="This is the first time connecting to this server. Verify the fingerprint below matches what the server administrator gave you, then trust it. The fingerprint will be remembered."/>
+
+          <!-- Mismatch copy: alarming, explicit MITM language -->
+          <Border IsVisible="{Binding HostKeyPromptIsMismatch}"
+                  Background="#3320150F" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="12">
+            <StackPanel Spacing="6">
+              <TextBlock FontSize="12" Foreground="#FCA5A5" TextWrapping="Wrap" FontWeight="SemiBold"
+                         Text="The fingerprint presented by this server does NOT match the one previously trusted."/>
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                         Text="This may mean the server was reinstalled or its key was rotated — but it can also mean the connection is being intercepted (MITM). Do not accept unless you have independently verified the change."/>
+            </StackPanel>
+          </Border>
+
+          <!-- Host:port -->
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,4,0,0">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Host" FontSize="11"
+                       Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"
+                       VerticalAlignment="Center" Margin="0,4,16,4"/>
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                       FontFamily="Cascadia Code, Consolas, monospace" Margin="0,4">
+              <Run Text="{Binding HostKeyPromptHost}"/><Run Text=":"/><Run Text="{Binding HostKeyPromptPort}"/>
+            </TextBlock>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Algorithm" FontSize="11"
+                       Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"
+                       VerticalAlignment="Center" Margin="0,4,16,4"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HostKeyPromptAlgorithm}"
+                       FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                       FontFamily="Cascadia Code, Consolas, monospace" Margin="0,4"/>
+          </Grid>
+
+          <!-- Received fingerprint (always shown) -->
+          <StackPanel Spacing="4">
+            <TextBlock Text="RECEIVED FINGERPRINT" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"/>
+            <Border Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
+                    BorderThickness="1" CornerRadius="6" Padding="10,8">
+              <TextBlock FontSize="12" FontFamily="Cascadia Code, Consolas, monospace"
+                         Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap">
+                <Run Text="SHA256:"/><Run Text="{Binding HostKeyPromptFingerprint}"/>
+              </TextBlock>
+            </Border>
+          </StackPanel>
+
+          <!-- Stored fingerprint (mismatch only) -->
+          <StackPanel Spacing="4" IsVisible="{Binding HostKeyPromptIsMismatch}">
+            <TextBlock Text="PREVIOUSLY TRUSTED" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"/>
+            <Border Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
+                    BorderThickness="1" CornerRadius="6" Padding="10,8">
+              <TextBlock FontSize="12" FontFamily="Cascadia Code, Consolas, monospace"
+                         Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap">
+                <Run Text="SHA256:"/><Run Text="{Binding HostKeyPromptStoredFingerprint}"/>
+              </TextBlock>
+            </Border>
+          </StackPanel>
+
+          <!-- Buttons: caption switches based on flow -->
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Classes="btn-secondary" Content="Cancel" Command="{Binding CancelHostKeyCommand}"/>
+            <Button Classes="btn" IsVisible="{Binding !HostKeyPromptIsMismatch}"
+                    Content="Trust and connect" Command="{Binding AcceptHostKeyCommand}"/>
+            <Button Classes="btn-danger" IsVisible="{Binding HostKeyPromptIsMismatch}"
+                    Content="Replace key and connect" Command="{Binding AcceptHostKeyCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Keyboard Shortcuts -->
+    <Grid IsVisible="{Binding IsShortcutsOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="26"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="⌨" FontSize="20" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+            <TextBlock Text="Keyboard Shortcuts" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}"/>
+          <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="4,4,4,0">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="New connection" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6"/>
+            <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,4">
+              <TextBlock Text="Ctrl + N" FontSize="11" FontFamily="Cascadia Code, Consolas, monospace" Foreground="{DynamicResource AccentBrush}"/>
+            </Border>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Disconnect all sessions" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6"/>
+            <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,4">
+              <TextBlock Text="Ctrl + Shift + D" FontSize="11" FontFamily="Cascadia Code, Consolas, monospace" Foreground="{DynamicResource AccentBrush}"/>
+            </Border>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Refresh active panel" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6"/>
+            <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,4">
+              <TextBlock Text="F5" FontSize="11" FontFamily="Cascadia Code, Consolas, monospace" Foreground="{DynamicResource AccentBrush}"/>
+            </Border>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Close active tab (disconnect)" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6"/>
+            <Border Grid.Row="3" Grid.Column="1" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,4">
+              <TextBlock Text="Ctrl + W" FontSize="11" FontFamily="Cascadia Code, Consolas, monospace" Foreground="{DynamicResource AccentBrush}"/>
+            </Border>
+          </Grid>
+
+          <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0,6,0,0"/>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Mouse" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSubtleBrush}" LetterSpacing="2"/>
+            <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                       Text="Double-click a file to transfer or open a folder. Drag a remote tab between panels to rearrange. Right-click a profile or file for more actions."/>
+          </StackPanel>
+          <Button Classes="btn" Content="Close" Command="{Binding CloseShortcutsCommand}"
+                  HorizontalAlignment="Right" Margin="0,6,0,0"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Rename -->
+    <Grid IsVisible="{Binding IsRenameOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="380" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="✏ Rename" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <TextBlock Text="{Binding RenameTarget.Name, StringFormat='{}Renaming: {0}'}"
+                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     FontFamily="Cascadia Code, Consolas, monospace"
+                     TextTrimming="CharacterEllipsis"/>
+          <TextBox Classes="field" PlaceholderText="New name"
+                   Text="{Binding RenameNewName}"
+                   KeyDown="OnRenameKeyDown"/>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Classes="btn-secondary" Content="Cancel" Command="{Binding CancelRenameCommand}"/>
+            <Button Classes="btn" Content="Rename" Command="{Binding ConfirmRenameCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Create Folder -->
+    <Grid IsVisible="{Binding IsCreateFolderOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="380" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="📁 Create Folder" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <TextBlock Text="{Binding CreateFolderTab.Path, StringFormat='{}In: {0}'}"
+                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     FontFamily="Cascadia Code, Consolas, monospace"
+                     TextTrimming="CharacterEllipsis"/>
+          <TextBox Classes="field" PlaceholderText="Folder name"
+                   Text="{Binding CreateFolderName}"
+                   KeyDown="OnCreateFolderKeyDown"/>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Classes="btn-secondary" Content="Cancel" Command="{Binding CancelCreateFolderCommand}"/>
+            <Button Classes="btn" Content="Create" Command="{Binding ConfirmCreateFolderCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Delete Confirm -->
+    <Grid IsVisible="{Binding IsDeleteConfirmOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="1" CornerRadius="12"
+              Width="420" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14">
+          <TextBlock Text="⚠️ Confirmar Eliminación" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource ErrorBrush}"/>
+          <TextBlock Text="{Binding DeleteConfirmMessage}"
+                     FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                     TextWrapping="Wrap"/>
+          <TextBlock Text="Esta acción no se puede deshacer."
+                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Classes="btn-secondary" Content="Cancelar" Command="{Binding CancelDeleteCommand}"/>
+            <Button Classes="btn" Background="{DynamicResource ErrorBrush}" Content="Eliminar" Command="{Binding ConfirmDeleteCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Settings -->
+    <Grid IsVisible="{Binding IsSettingsOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="520" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="28"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <TextBlock Text="⚙" FontSize="20" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+            <TextBlock Text="Configuración" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <!-- THEME section -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="TEMA" Classes="field-label"/>
+            <TextBlock Text="Elige la apariencia de la aplicación. El cambio es instantáneo y se guarda para próximos inicios."
+                       FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+
+            <Grid ColumnDefinitions="*,10,*,10,*" Margin="0,6,0,0">
+              <!-- Dark -->
+              <Button Grid.Column="0" Classes="theme-card"
+                      Classes.theme-card-active="{Binding IsThemeDark}"
+                      Command="{Binding PickThemeCommand}" CommandParameter="Dark">
+                <StackPanel Spacing="8">
+                  <Border Background="#0B0F19" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                          CornerRadius="6" Height="52">
+                    <Grid>
+                      <Border Background="#121826" BorderBrush="#FFFFFF14" BorderThickness="1"
+                              CornerRadius="3" Width="34" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      <Border Background="#3B82F6" CornerRadius="2" Width="14" Height="2"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                    </Grid>
+                  </Border>
+                  <TextBlock Text="🌙 Oscuro" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
+              </Button>
+
+              <!-- Light -->
+              <Button Grid.Column="2" Classes="theme-card"
+                      Classes.theme-card-active="{Binding IsThemeLight}"
+                      Command="{Binding PickThemeCommand}" CommandParameter="Light">
+                <StackPanel Spacing="8">
+                  <Border Background="#F5F7FA" BorderBrush="#D1D5DB" BorderThickness="1"
+                          CornerRadius="6" Height="52">
+                    <Grid>
+                      <Border Background="#FFFFFF" BorderBrush="#0000001A" BorderThickness="1"
+                              CornerRadius="3" Width="34" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      <Border Background="#2563EB" CornerRadius="2" Width="14" Height="2"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                    </Grid>
+                  </Border>
+                  <TextBlock Text="☀ Claro" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
+              </Button>
+
+              <!-- System -->
+              <Button Grid.Column="4" Classes="theme-card"
+                      Classes.theme-card-active="{Binding IsThemeSystem}"
+                      Command="{Binding PickThemeCommand}" CommandParameter="System">
+                <StackPanel Spacing="8">
+                  <Border BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                          CornerRadius="6" Height="52" ClipToBounds="True">
+                    <Grid ColumnDefinitions="*,*">
+                      <Border Grid.Column="0" Background="#0B0F19"/>
+                      <Border Grid.Column="1" Background="#F5F7FA"/>
+                    </Grid>
+                  </Border>
+                  <TextBlock Text="🖥 Sistema" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
+              </Button>
+            </Grid>
+          </StackPanel>
+
+          <!-- TRANSFERS section -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="TRANSFERENCIAS" Classes="field-label"/>
+            <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="12,10">
+              <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="Forzar retransferencia"
+                             FontSize="13" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Text="Por defecto, los archivos con mismo tamaño y fecha (±2 s) se omiten al estilo rsync. Activa esta opción para retransferir todo aunque parezca actualizado."
+                             FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ForceTransfer}"
+                              VerticalAlignment="Center" Margin="12,0,0,0"/>
+              </Grid>
+            </Border>
+          </StackPanel>
+
+          <!-- ABOUT subtle footer -->
+          <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="1" CornerRadius="8" Padding="12,10">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Ajustes guardados en" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" FontWeight="SemiBold"/>
+              <TextBlock Text="%APPDATA%\InfraSftp\settings.json" FontSize="11"
+                         FontFamily="Cascadia Code, Consolas, monospace"
+                         Foreground="{DynamicResource TextBrightBrush}"/>
+            </StackPanel>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,6,0,0">
+            <Button Classes="btn" Content="Cerrar" Command="{Binding CloseSettingsCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Transfer conflict (file / folder already exists) -->
+    <Grid IsVisible="{Binding IsConflictOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="560" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <StackPanel Spacing="14" DataContext="{Binding PendingConflict}"
+                    x:DataType="models:ConflictInfo">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AmberBrush}"/>
+          <TextBlock Text="{Binding Message}" FontSize="13" Foreground="{DynamicResource TextBrightBrush}" TextWrapping="Wrap"/>
+
+          <!-- Side-by-side comparison -->
+          <Grid ColumnDefinitions="*,12,*" Margin="0,4,0,0">
+            <!-- Source -->
+            <Border Grid.Column="0" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                    CornerRadius="8" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="SOURCE" Classes="field-label"/>
+                <TextBlock Text="{Binding SourcePath}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           FontFamily="Cascadia Code, Consolas, monospace"
+                           TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SourcePath}"/>
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,6,0,0">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,8,2"/>
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SourceSizeText}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Modified:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,8,0"/>
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SourceModifiedText}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <!-- Destination -->
+            <Border Grid.Column="2" Background="{DynamicResource WindowBgBrush}" BorderBrush="{DynamicResource AmberSoftBrush}" BorderThickness="1"
+                    CornerRadius="8" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="DESTINATION (EXISTS)" Classes="field-label" Foreground="{DynamicResource AmberBrush}"/>
+                <TextBlock Text="{Binding DestPath}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           FontFamily="Cascadia Code, Consolas, monospace"
+                           TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DestPath}"/>
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,6,0,0">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,8,2"/>
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DestSizeText}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold"/>
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Modified:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0,0,8,0"/>
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DestModifiedText}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <!-- Apply-to-all checkbox: paste flow only. Hidden in transfer mode. -->
+          <CheckBox IsChecked="{Binding ApplyToAll, Mode=TwoWay}"
+                    IsVisible="{Binding IsPasteMode}"
+                    Content="Apply this choice to all remaining items"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                    Margin="0,4,0,0"/>
+
+          <!-- Buttons: TRANSFER mode (legacy two-button flow) -->
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0"
+                      IsVisible="{Binding IsTransferMode}">
+            <Button Classes="btn-secondary" Content="Cancel"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictCancelCommand}"/>
+            <Button Classes="btn" Content="Copy (Overwrite)"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictReplaceCommand}"/>
+          </StackPanel>
+
+          <!-- Buttons: PASTE mode (Replace / Skip / Rename / Cancel) -->
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,10,0,0"
+                      IsVisible="{Binding IsPasteMode}">
+            <Button Classes="btn-secondary" Content="Cancel"
+                    ToolTip.Tip="Abort the paste"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictCancelCommand}"/>
+            <Button Classes="btn-secondary" Content="Skip"
+                    ToolTip.Tip="Leave the existing item; move on to the next"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictSkipCommand}"/>
+            <Button Classes="btn-secondary" Content="{Binding SuggestedNewName, StringFormat='Rename → \{0\}'}"
+                    ToolTip.Tip="Paste with an auto-generated unique name"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictRenameCommand}"/>
+            <Button Classes="btn-danger" Content="Replace"
+                    ToolTip.Tip="Overwrite the existing item"
+                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ResolveConflictReplaceCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- MODAL OVERLAY: Recursive subtree search (Ctrl+Shift+F) -->
+    <Grid IsVisible="{Binding IsSearchOpen}" Background="#80000000" ZIndex="100">
+      <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12"
+              Width="640" MaxHeight="600" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24"
+              BoxShadow="0 20 40 0 #00000099">
+        <DockPanel LastChildFill="True">
+          <StackPanel DockPanel.Dock="Top" Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+              <TextBlock Text="🌳" FontSize="20" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+              <TextBlock Text="Search subtree" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+              <TextBlock Text="ROOT" Classes="field-label"/>
+              <TextBlock Text="{Binding SearchRoot}" FontSize="11"
+                         FontFamily="Cascadia Code, Consolas, monospace"
+                         Foreground="{DynamicResource TextBrightBrush}"
+                         TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding SearchRoot}"/>
+            </StackPanel>
+
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBox Grid.Column="0" Classes="field"
+                       Text="{Binding SearchQuery}"
+                       PlaceholderText="Substring to find (case-insensitive)…"
+                       KeyDown="OnSearchQueryKeyDown"
+                       AttachedToVisualTree="OnSearchQueryAttached"/>
+              <Button Grid.Column="1" Classes="btn"
+                      Content="Search"
+                      Command="{Binding RunSubtreeSearchCommand}"
+                      IsVisible="{Binding !IsSearchRunning}"/>
+              <Button Grid.Column="1" Classes="btn-danger"
+                      Content="Stop"
+                      Command="{Binding CancelSubtreeSearchCommand}"
+                      IsVisible="{Binding IsSearchRunning}"/>
+              <Button Grid.Column="2" Classes="btn-secondary" Content="Close"
+                      Command="{Binding CloseSubtreeSearchCommand}"/>
+            </Grid>
+
+            <TextBlock Text="{Binding SearchStatus}" FontSize="11"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       TextTrimming="CharacterEllipsis"/>
+          </StackPanel>
+
+          <Border Margin="0,12,0,0" Background="{DynamicResource WindowBgBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8"
+                  ClipToBounds="True">
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{Binding SearchResults}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="svc:SearchHit">
+                    <Button Classes="file-row"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenSearchHitCommand}"
+                            CommandParameter="{Binding}">
+                      <Grid ColumnDefinitions="30,*,80">
+                        <TextBlock Grid.Column="0"
+                                   Text="📁" IsVisible="{Binding IsDirectory}"
+                                   FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="#F59E0B"/>
+                        <TextBlock Grid.Column="0"
+                                   Text="📄" IsVisible="{Binding !IsDirectory}"
+                                   FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="#9CA3AF"/>
+                        <TextBlock Grid.Column="1" Text="{Binding RelativePath}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   FontFamily="Cascadia Code, Consolas, monospace" FontSize="12"
+                                   ToolTip.Tip="{Binding FullPath}"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding Size, StringFormat=N0}"
+                                   IsVisible="{Binding !IsDirectory}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right"
+                                   FontSize="11" Foreground="{DynamicResource TextSubtleBrush}"/>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+  </Grid>
+</Window>
