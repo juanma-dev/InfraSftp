@@ -15,4 +15,18 @@
       <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
     </application>
   </compatibility>
+
+  <!-- Long-path opt-in. Without this, the legacy Win32 MAX_PATH=260 limit
+       applies and recursive transfers under deeply nested directory trees
+       fail with PathTooLongException — the same failure mode xftp has.
+       With the opt-in, .NET routes file I/O through the long-path-aware
+       Win32 surface (paths up to ~32K). Requires Windows 10 1607 or later,
+       which the supportedOS GUID above already mandates. Independent of
+       the per-machine HKLM\...\LongPathsEnabled registry switch — this
+       manifest entry alone is enough for the process. -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
+    </windowsSettings>
+  </application>
 </assembly>

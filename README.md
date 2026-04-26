@@ -78,6 +78,17 @@ Forzar retransferencia**.
 The 2-second tolerance absorbs timestamp-resolution mismatches between
 FAT (2 s), NTFS (~100 ns), and ext4 (1 ns).
 
+#### Long paths
+
+InfraSftp handles file paths longer than the historical Windows 260-char
+`MAX_PATH` limit (up to ~32,000 chars). Many older clients — including
+some popular SFTP tools — fail with "path too long" errors on deep
+directory trees and force users to fall back to `rsync`. InfraSftp
+declares the long-path opt-in in its application manifest so the OS
+treats long paths transparently. Note that NTFS still caps individual
+filename segments at 255 chars — that's a filesystem rule and applies
+to every Windows app.
+
 ### Keyboard shortcuts
 
 | Gesture | Action |
@@ -207,6 +218,19 @@ independientemente del estado, activa **Configuración → Transferencias
 
 La tolerancia de 2 segundos absorbe diferencias de resolución de
 timestamp entre FAT (2 s), NTFS (~100 ns) y ext4 (1 ns).
+
+#### Rutas largas
+
+InfraSftp soporta rutas de archivo más largas que el límite histórico
+de Windows de 260 caracteres (`MAX_PATH`), llegando hasta ~32.000.
+Muchos clientes antiguos — incluyendo algunas herramientas SFTP
+populares — fallan con error "ruta demasiado larga" en árboles de
+directorios profundos y obligan al usuario a recurrir a `rsync`. La
+app declara el opt-in de rutas largas en su manifiesto de aplicación
+para que el sistema operativo trate estas rutas de forma transparente.
+Ten en cuenta que NTFS sigue limitando cada nombre individual de
+archivo a 255 caracteres — eso es una regla del sistema de archivos y
+aplica a cualquier app de Windows.
 
 ### Atajos de teclado
 

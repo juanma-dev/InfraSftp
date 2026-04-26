@@ -60,6 +60,12 @@ After every successful file transfer, the destination's mtime is stamped to matc
 
 The skip can be disabled wholesale by the user via the Settings → Transferencias → "Forzar retransferencia" toggle. The flag is read through `ForceTransferProvider` (a lambda set by the VM at connect time) so toggling it in the UI takes effect immediately on the next transfer without reconnecting. Preserve the `TransferStatus.Skipped` path so the UI log still shows the skip.
 
+### Long paths
+
+[app.manifest](app.manifest) opts the process into Windows long-path support via `<longPathAware>true</longPathAware>` under `<windowsSettings>`. Without this entry .NET routes file I/O through the legacy Win32 surface and recursive transfers under deep directory trees fail with `PathTooLongException` at the 260-char `MAX_PATH` limit — the same failure mode xftp ships with. With it, paths up to ~32K are handled transparently; no code changes (no `\\?\` prefixes) are needed in `SftpService` or anywhere else. The opt-in is process-scoped, so it's independent of the per-machine `HKLM\...\LongPathsEnabled` registry switch.
+
+Note: the 255-char filename limit on NTFS still applies — that's a filesystem-level rule, not a path-length one. Long-path-aware doesn't help if any single segment between `\` exceeds 255 characters.
+
 ### Threading
 
 SFTP callbacks fire on a background thread. Any mutation of `ObservableCollection<T>` or `[ObservableProperty]`-backed state from inside `Task.Run`, `OnTransferProgress`, or `OnLog` handlers **must be marshalled via `Avalonia.Threading.Dispatcher.UIThread.Post`**, otherwise Avalonia throws on collection-changed notifications. This is the established pattern throughout `MainWindowViewModel`.
