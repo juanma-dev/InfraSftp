@@ -5,13 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build, Run & Test
 
 ```bash
-dotnet build                      # compile main exe
-dotnet run                        # build + launch the desktop app
-dotnet build InfraSftp.sln        # main + tests
-dotnet test  InfraSftp.sln        # run the xUnit suite
+dotnet build                                   # compile both TFMs
+dotnet run -f net8.0-windows                   # launch on Windows
+dotnet run -f net8.0                           # launch on Linux
+dotnet build InfraSftp.sln                     # main + tests, both TFMs
+dotnet test  InfraSftp.sln                     # run xUnit on both TFMs
 ```
 
-The main project is a `WinExe` targeting `net8.0-windows` (Windows-only on purpose — the password vault uses Windows DPAPI). The solution adds a sibling [tests/InfraSftp.Tests](tests/InfraSftp.Tests) xUnit project that targets the same TFM and references the main project. `[InternalsVisibleTo("InfraSftp.Tests")]` is wired in [InfraSftp.csproj](InfraSftp.csproj) so `internal static` helpers (e.g. `MainWindowViewModel.StripCopySuffix`) are reachable without exposing a wider public surface.
+The main project multi-targets `net8.0-windows;net8.0`. Pass `-f` to disambiguate when running. Outputs land in `bin/Debug/<tfm>/`. The solution adds a sibling [tests/InfraSftp.Tests](tests/InfraSftp.Tests) xUnit project that mirrors the multi-target and references the main project, so `dotnet test` runs the full suite once per TFM (currently 32 × 2 = 64 results). `[InternalsVisibleTo("InfraSftp.Tests")]` is wired in [InfraSftp.csproj](InfraSftp.csproj) so `internal static` helpers (e.g. `MainWindowViewModel.StripCopySuffix`) are reachable without exposing a wider public surface.
+
+**Building from WSL:** `dotnet build` from a path under `/mnt/c/...` fails with *"Could not set file permission 755 for ... apphost"* because NTFS rejects chmod from WSL. Clone or rsync the source into the Linux filesystem (`~/InfraSftp`) and build from there. ext4 is also 5–10× faster than the NTFS bridge.
 
 Tests use plain `[Fact]` / `[Theory]` for pure logic and `Avalonia.Headless` (with a `IClassFixture<HeadlessAvaloniaFixture>`) for dispatcher-bound flows. We avoid the `Avalonia.Headless.XUnit` add-on because it pulls xunit v3, which collides with the v2 baseline in the test csproj. Note: tests live under `./tests/`, which the SDK would otherwise auto-include into the main exe — [InfraSftp.csproj](InfraSftp.csproj) explicitly removes `tests/**` from the main project's compile / resource globs.
 
@@ -45,11 +48,18 @@ Two scopes:
 
 ### Password vault
 
-The vault uses **Windows DPAPI under `DataProtectionScope.CurrentUser`** (v2 format). The OS binds the encryption key to the logged-in user's credential, so the file cannot be decrypted by a different user account or copied to another machine. A constant entropy string (`InfraSftp.Vault.v2`) acts as a domain separator so other apps running as the same user cannot decrypt it either — treat that string as a domain identifier, not a secret.
+The vault is fronted by [IPasswordVault](Services/Vault/IPasswordVault.cs) and resolved per-platform by [PasswordVaultFactory](Services/Vault/PasswordVaultFactory.cs). `ProfileService.SavePassword/GetPassword/DeletePassword` delegate; the public surface (`MainWindowViewModel`) does not know which backend is in use.
+
+- **Windows — [DpapiVault](Services/Vault/DpapiVault.cs):** all secrets in a single JSON dictionary at `%APPDATA%/InfraSftp/vault.dat`, encrypted with DPAPI under `DataProtectionScope.CurrentUser`. The OS binds the key to the logged-in user's credential so the file cannot be decrypted by another account or copied to another machine. A constant entropy string (`InfraSftp.Vault.v2`) acts as a domain separator so other apps running as the same user can't decrypt it either — treat as a domain identifier, not a secret. Compiled only when the `WINDOWS` symbol is defined (auto-set by the `net8.0-windows` TFM); the whole class is wrapped in `#if WINDOWS`.
+
+- **Linux — [LibsecretVault](Services/Vault/LibsecretVault.cs):** each secret is a separate item in the user's session keyring, stored via the `secret-tool` CLI from the `libsecret` package. Two attributes pin the lookup: `application=com.webjuanma.InfraSftp` (domain separator) and `key=<id>`. Passwords are passed via stdin so they never appear in `/proc/<pid>/cmdline`. If `secret-tool` is missing or the Secret Service isn't reachable, `Save/Get/Delete` throw `VaultUnavailableException` with a remediation message — fail loud, don't silently drop credentials.
+
+- **WSL caveat:** the Linux vault needs an active Secret Service daemon (gnome-keyring or kwallet5). On a fresh WSL Fedora without a desktop session, neither is running and the vault throws on first use. This is fine for the RPM target (real Fedora desktop) but means dev-iterating the Linux build inside WSL won't exercise the vault end-to-end without manually starting `gnome-keyring-daemon`.
+
+#### DPAPI v2 layout (Windows only)
 
 - File layout: `"ISv2"` magic (4 bytes) + DPAPI blob.
 - v1 (legacy AES-256-CBC, machine/user-seeded key) is still **read-on-load**: any pre-existing vault is decrypted with the legacy path and immediately re-saved as v2. Once every install has loaded the app once, the legacy decrypt path can be deleted.
-- DPAPI is Windows-only. The project is `WinExe` so this is fine; if cross-platform support is ever added, swap to a platform-aware abstraction (libsecret on Linux, Keychain on macOS).
 - DPAPI itself is authenticated, but the 4-byte magic header is not — don't rely on it for tamper detection.
 
 ### Transfer semantics (rsync-like)
@@ -60,9 +70,19 @@ After every successful file transfer, the destination's mtime is stamped to matc
 
 The skip can be disabled wholesale by the user via the Settings → Transferencias → "Forzar retransferencia" toggle. The flag is read through `ForceTransferProvider` (a lambda set by the VM at connect time) so toggling it in the UI takes effect immediately on the next transfer without reconnecting. Preserve the `TransferStatus.Skipped` path so the UI log still shows the skip.
 
-### Long paths
+### Per-user data directory
+
+[Services/AppPaths.cs](Services/AppPaths.cs) is the single source of truth for the InfraSftp data root. Every service that needed a per-user file (`LoggingService`, `ProfileService`, `KnownHostsService`, `SettingsService`, `DpapiVault`) goes through it instead of computing `Path.Combine(Environment.GetFolderPath(ApplicationData), "InfraSftp")` itself.
+
+Why centralised: on Linux, `Environment.SpecialFolder.ApplicationData` returns an **empty string** when `~/.config` doesn't yet exist. Without the helper, every consumer would silently `Path.Combine("", "InfraSftp")` → `"InfraSftp"`, a relative path under the process CWD — first-run users on Linux would have logs / profiles / vault files scattered into whatever directory they launched from. `AppPaths.Root` falls back to `$XDG_CONFIG_HOME` → `$HOME/.config` → `Environment.UserProfile + .config` and creates the dir up front so subsequent reads always hit a stable absolute path.
+
+Layout: Windows → `%APPDATA%\InfraSftp\`, Linux → `~/.config/InfraSftp/`.
+
+### Long paths (Windows only)
 
 [app.manifest](app.manifest) opts the process into Windows long-path support via `<longPathAware>true</longPathAware>` under `<windowsSettings>`. Without this entry .NET routes file I/O through the legacy Win32 surface and recursive transfers under deep directory trees fail with `PathTooLongException` at the 260-char `MAX_PATH` limit — the same failure mode xftp ships with. With it, paths up to ~32K are handled transparently; no code changes (no `\\?\` prefixes) are needed in `SftpService` or anywhere else. The opt-in is process-scoped, so it's independent of the per-machine `HKLM\...\LongPathsEnabled` registry switch.
+
+The manifest is conditioned on `'$(TargetFramework)' == 'net8.0-windows'` in the csproj — Linux filesystems (ext4, btrfs, xfs) don't carry the 260-char limit so the opt-in is irrelevant there.
 
 Note: the 255-char filename limit on NTFS still applies — that's a filesystem-level rule, not a path-length one. Long-path-aware doesn't help if any single segment between `\` exceeds 255 characters.
 

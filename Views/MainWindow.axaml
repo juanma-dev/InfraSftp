@@ -768,7 +768,7 @@
           <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
             <TextBlock Text="CONNECTIONS" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}"
                        VerticalAlignment="Center" LetterSpacing="2"/>
-            <Button Grid.Column="1" Classes="icon-btn" Content="＋" Click="OpenCreateModal"/>
+            <Button Grid.Column="1" Classes="icon-btn" Content="➕" Click="OpenCreateModal"/>
           </Grid>
 
           <!-- Search box -->
@@ -1435,7 +1435,7 @@
           </Button>
           <Button Classes="menu-item" Command="{Binding MenuDisconnectAllCommand}">
             <Grid ColumnDefinitions="24,*,Auto">
-              <TextBlock Grid.Column="0" Text="⏻" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="0" Text="✕" FontSize="13" VerticalAlignment="Center"/>
               <TextBlock Grid.Column="1" Text="Disconnect All" VerticalAlignment="Center"/>
               <TextBlock Grid.Column="2" Text="Ctrl+Shift+D" FontSize="10" Foreground="{DynamicResource TextSubtleBrush}" VerticalAlignment="Center"/>
             </Grid>

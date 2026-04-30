@@ -1,8 +1,9 @@
 # InfraSftp
 
-A two-pane SFTP client for Windows, inspired by WinSCP and FileZilla. Saved
-connection profiles, side-by-side local/remote browsers, drag-and-drop
-transfers, rsync-style skip-on-match, and Windows DPAPI password storage.
+A two-pane SFTP client for **Windows** and **Linux (Fedora)**, inspired by
+WinSCP and FileZilla. Saved connection profiles, side-by-side local/remote
+browsers, drag-and-drop transfers, rsync-style skip-on-match, and a
+per-platform encrypted password vault (Windows DPAPI / libsecret on Linux).
 
 > **Languages**: [English](#english) · [Español](#español)
 
@@ -10,7 +11,7 @@ transfers, rsync-style skip-on-match, and Windows DPAPI password storage.
 
 ## English
 
-### Install
+### Install on Windows
 
 InfraSftp is published as a Windows installer and a portable ZIP via
 [GitHub Releases](https://github.com/juanma-dev/InfraSftp/releases).
@@ -30,6 +31,38 @@ Run anyway**. Subsequent launches will not warn. The signature still
 guarantees the file wasn't modified after build — it just can't prove the
 identity of the publisher to Microsoft.
 
+### Install on Fedora Linux
+
+A self-contained RPM is published with each release at
+[GitHub Releases](https://github.com/juanma-dev/InfraSftp/releases) as
+`infrasftp-<version>-1.fc.x86_64.rpm`.
+
+```bash
+# Optional but recommended: import the signing key first so dnf
+# verifies the package.
+sudo rpm --import https://github.com/juanma-dev/InfraSftp/releases/download/v0.2.0/RPM-GPG-KEY-InfraSftp.asc
+
+sudo dnf install ./infrasftp-0.2.0-1.fc.x86_64.rpm
+```
+
+After install, launch from the desktop menu (**InfraSftp**) or run
+`infrasftp` from a terminal.
+
+**Runtime dependencies** (declared in the RPM, dnf pulls them in
+automatically): `libsecret`, `dejavu-sans-fonts`, `google-noto-emoji-fonts`.
+The .NET 8 runtime is bundled — you do not need to install dotnet
+separately.
+
+**Password storage**: passwords are stored via libsecret in the active
+desktop session keyring (gnome-keyring, kwallet5, …). The keyring needs
+a running Secret Service daemon — that is the standard setup on a normal
+Fedora Workstation / KDE / Sway desktop. **WSL minimal installs do not
+ship a Secret Service daemon by default**, so saving credentials there
+will fail; the rest of the app works.
+
+**Auto-updates**: the Linux build does not auto-update. Subscribe to the
+GitHub release feed and install the new RPM with `dnf upgrade ./...rpm`.
+
 ### Connection profiles
 
 Open the sidebar (`☰` → **New profile** or `Ctrl+N`). Required fields:
@@ -42,10 +75,16 @@ Open the sidebar (`☰` → **New profile** or `Ctrl+N`). Required fields:
 | User | SSH username |
 | Auth method | Password **or** Private key |
 
-Passwords are stored in the **Windows DPAPI vault** at
-`%APPDATA%\InfraSftp\vault.dat`. The OS binds the encryption key to your
-Windows user account: the file cannot be read by another user on the same
-machine, nor copied to another computer.
+Passwords are stored in a per-platform encrypted vault:
+
+- **Windows** — DPAPI under `%APPDATA%\InfraSftp\vault.dat`. The OS binds
+  the encryption key to your Windows user account: the file cannot be
+  read by another user on the same machine, nor copied to another
+  computer.
+- **Linux** — libsecret / Secret Service. Each entry is a separate item
+  in the active session keyring (gnome-keyring, kwallet5, …) tagged
+  `application=com.webjuanma.InfraSftp`. The keyring is unlocked by your
+  desktop login.
 
 #### First connect to a host (TOFU)
 
@@ -103,15 +142,18 @@ The "active panel" follows focus — click into a panel to make it active.
 
 ### Privacy & data
 
-InfraSftp stores everything under `%APPDATA%\InfraSftp\`:
+InfraSftp stores everything under a per-user data directory:
+
+- **Windows**: `%APPDATA%\InfraSftp\`
+- **Linux**: `$XDG_CONFIG_HOME/InfraSftp/` (defaults to `~/.config/InfraSftp/`)
 
 | File / folder | Purpose |
 |---|---|
 | `profiles.json` | Connection profile metadata (no passwords) |
-| `vault.dat` | DPAPI-encrypted passwords |
+| `vault.dat` *(Windows only)* | DPAPI-encrypted passwords. On Linux, passwords live in the desktop keyring via libsecret. |
 | `known_hosts.json` | Pinned host-key fingerprints |
 | `settings.json` | Theme, hidden-file visibility, force-transfer, telemetry choice, window layout |
-| `logs\app-*.log` | Local error log, last 7 days |
+| `logs/app-*.log` | Local error log, last 7 days |
 
 **Crash reports are opt-in.** The toggle lives at **Settings → Privacidad
 → Enviar reportes de errores** and is off by default. When enabled, fatal
@@ -129,14 +171,17 @@ restart" when ready. You can dismiss the banner with the `✕`; the
 download still completes silently. Manual checks live in **Settings →
 Actualizaciones → Buscar ahora**.
 
-Auto-updates only work in the **installed** flavour; the portable ZIP
-does not self-update.
+Auto-updates only work in the **installed** flavour on Windows; the
+portable ZIP and the Linux RPM do not self-update. On Linux, `dnf
+upgrade` against a freshly-downloaded RPM is the supported path.
 
 ### Reporting bugs
 
 Open an issue at <https://github.com/juanma-dev/InfraSftp/issues>. If you
 have not opted into crash reporting, please attach the latest file from
-`%APPDATA%\InfraSftp\logs\` — it makes diagnosis dramatically faster.
+the `logs/` folder under the data directory listed above
+(`%APPDATA%\InfraSftp\logs\` on Windows, `~/.config/InfraSftp/logs/` on
+Linux) — it makes diagnosis dramatically faster.
 
 ### License
 
@@ -147,7 +192,7 @@ GPL-3.0. See [LICENSE](LICENSE) for the canonical notice and
 
 ## Español
 
-### Instalación
+### Instalación en Windows
 
 InfraSftp se distribuye como instalador y como ZIP portable a través de
 [GitHub Releases](https://github.com/juanma-dev/InfraSftp/releases).
@@ -168,6 +213,40 @@ A partir de la segunda ejecución no volverá a avisar. La firma sigue
 garantizando que el archivo no se modificó tras compilarse — simplemente
 no puede demostrar la identidad del editor ante Microsoft.
 
+### Instalación en Fedora Linux
+
+Con cada release se publica un RPM auto-contenido en
+[GitHub Releases](https://github.com/juanma-dev/InfraSftp/releases) con
+el nombre `infrasftp-<version>-1.fc.x86_64.rpm`.
+
+```bash
+# Opcional pero recomendado: importa la clave de firma para que dnf
+# verifique el paquete.
+sudo rpm --import https://github.com/juanma-dev/InfraSftp/releases/download/v0.2.0/RPM-GPG-KEY-InfraSftp.asc
+
+sudo dnf install ./infrasftp-0.2.0-1.fc.x86_64.rpm
+```
+
+Tras la instalación, ábrelo desde el menú del escritorio (**InfraSftp**)
+o ejecuta `infrasftp` en una terminal.
+
+**Dependencias en tiempo de ejecución** (declaradas en el RPM, dnf las
+instala automáticamente): `libsecret`, `dejavu-sans-fonts`,
+`google-noto-emoji-fonts`. El runtime de .NET 8 va incluido — no hace
+falta instalar dotnet por separado.
+
+**Almacenamiento de contraseñas**: las contraseñas se guardan vía
+libsecret en el llavero de la sesión activa de escritorio
+(gnome-keyring, kwallet5, …). El llavero requiere un demonio Secret
+Service en ejecución — eso es el setup estándar en Fedora Workstation /
+KDE / Sway. **Las instalaciones mínimas de WSL no traen demonio Secret
+Service por defecto**, así que guardar credenciales fallará ahí; el
+resto de la app funciona.
+
+**Actualizaciones automáticas**: la versión Linux no se autoactualiza.
+Suscríbete al feed de releases de GitHub e instala el RPM nuevo con
+`dnf upgrade ./...rpm`.
+
 ### Perfiles de conexión
 
 Abre la barra lateral (`☰` → **Nuevo perfil** o `Ctrl+N`). Campos:
@@ -180,10 +259,16 @@ Abre la barra lateral (`☰` → **Nuevo perfil** o `Ctrl+N`). Campos:
 | Usuario | Usuario SSH |
 | Método de autenticación | Contraseña **o** Clave privada |
 
-Las contraseñas se guardan en el **vault DPAPI de Windows** en
-`%APPDATA%\InfraSftp\vault.dat`. El sistema operativo vincula la clave
-de cifrado a tu cuenta de Windows: el archivo no puede ser leído por
-otro usuario de la misma máquina, ni copiado a otro equipo.
+Las contraseñas se guardan en un vault cifrado por plataforma:
+
+- **Windows** — DPAPI en `%APPDATA%\InfraSftp\vault.dat`. El sistema
+  operativo vincula la clave de cifrado a tu cuenta de Windows: el
+  archivo no puede ser leído por otro usuario de la misma máquina, ni
+  copiado a otro equipo.
+- **Linux** — libsecret / Secret Service. Cada entrada es un ítem
+  separado en el llavero de la sesión activa (gnome-keyring,
+  kwallet5, …) etiquetado con `application=com.webjuanma.InfraSftp`. El
+  llavero se desbloquea con tu inicio de sesión de escritorio.
 
 #### Primera conexión a un host (TOFU)
 
@@ -246,15 +331,18 @@ El "panel activo" sigue al foco — haz clic en un panel para activarlo.
 
 ### Privacidad y datos
 
-InfraSftp guarda todo bajo `%APPDATA%\InfraSftp\`:
+InfraSftp guarda todo bajo un directorio de datos por usuario:
+
+- **Windows**: `%APPDATA%\InfraSftp\`
+- **Linux**: `$XDG_CONFIG_HOME/InfraSftp/` (por defecto `~/.config/InfraSftp/`)
 
 | Archivo / carpeta | Contenido |
 |---|---|
 | `profiles.json` | Metadatos de los perfiles (sin contraseñas) |
-| `vault.dat` | Contraseñas cifradas con DPAPI |
+| `vault.dat` *(solo Windows)* | Contraseñas cifradas con DPAPI. En Linux las contraseñas viven en el llavero del escritorio vía libsecret. |
 | `known_hosts.json` | Huellas digitales fijadas de servidores |
 | `settings.json` | Tema, archivos ocultos, forzar retransferencia, telemetría, layout de ventana |
-| `logs\app-*.log` | Log local de errores, últimos 7 días |
+| `logs/app-*.log` | Log local de errores, últimos 7 días |
 
 **Los reportes de errores son opt-in.** El interruptor está en
 **Configuración → Privacidad → Enviar reportes de errores** y viene
@@ -273,15 +361,18 @@ terminar ofrece "Instalar y reiniciar". Puedes ocultar el banner con
 `✕`; la descarga sigue completándose en silencio. Para verificación
 manual, **Configuración → Actualizaciones → Buscar ahora**.
 
-La actualización automática sólo funciona en la versión **instalada**;
-la versión portable no se autoactualiza.
+La actualización automática sólo funciona en la versión **instalada**
+de Windows; la versión portable y el RPM de Linux no se autoactualizan.
+En Linux, la vía recomendada es ejecutar `dnf upgrade` contra el RPM
+recién descargado.
 
 ### Reportar errores
 
 Abre una incidencia en <https://github.com/juanma-dev/InfraSftp/issues>.
 Si no has activado el envío de reportes de errores, adjunta por favor
-el archivo más reciente de `%APPDATA%\InfraSftp\logs\` — acelera mucho
-el diagnóstico.
+el archivo más reciente de la carpeta `logs/` del directorio de datos
+indicado arriba (`%APPDATA%\InfraSftp\logs\` en Windows,
+`~/.config/InfraSftp/logs/` en Linux) — acelera mucho el diagnóstico.
 
 ### Licencia
 

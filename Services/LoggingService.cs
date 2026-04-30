@@ -17,9 +17,7 @@ public sealed class LoggingService
 {
     private const int RetentionDays = 7;
 
-    private static readonly string LogDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "InfraSftp", "logs");
+    private static readonly string LogDir = Path.Combine(AppPaths.Root, "logs");
 
     private static readonly object _gate = new();
     private static bool _retentionRan;

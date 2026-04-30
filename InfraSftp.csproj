@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFrameworks>net8.0-windows;net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
     <!-- Single source of truth for the version, read by the release script
          and stamped into the assembly so About / Settings can show it. -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(Version).0</FileVersion>
     <Company>webjuanma</Company>
@@ -20,6 +19,13 @@
          of the app: changing this would break auto-update for every install
          that already saw a previous id. -->
     <VelopackAppId>com.webjuanma.InfraSftp</VelopackAppId>
+  </PropertyGroup>
+
+  <!-- Windows-only manifest. Declares longPathAware to lift MAX_PATH=260 on
+       deep recursive transfers; that opt-in is meaningless on Linux (ext4 etc
+       don't carry the limit) and the manifest format is Win32-specific. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,8 +57,15 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="SSH.NET" Version="2025.1.0" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     <PackageReference Include="Velopack" Version="0.0.1298" />
     <PackageReference Include="Sentry" Version="4.13.0" />
+  </ItemGroup>
+
+  <!-- DPAPI (System.Security.Cryptography.ProtectedData) is the Windows
+       password-vault backend. On Linux we use libsecret via secret-tool
+       (see Services/Vault/LibsecretVault.cs), so this package is unused
+       outside the net8.0-windows TFM and would only add ceremony. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 </Project>

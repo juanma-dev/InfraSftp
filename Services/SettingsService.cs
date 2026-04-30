@@ -60,11 +60,9 @@ public class AppSettings
 /// </summary>
 public class SettingsService
 {
-    private static readonly string AppDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InfraSftp");
-    private static readonly string Path_ = Path.Combine(AppDir, "settings.json");
+    private static readonly string Path_ = Path.Combine(AppPaths.Root, "settings.json");
 
-    public SettingsService() => Directory.CreateDirectory(AppDir);
+    public SettingsService() { }
 
     public AppSettings Load()
     {

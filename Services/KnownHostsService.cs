@@ -17,16 +17,13 @@ namespace InfraSftp.Services;
 /// </summary>
 public class KnownHostsService
 {
-    private static readonly string AppDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InfraSftp");
-    private static readonly string KnownHostsPath = Path.Combine(AppDir, "known_hosts.json");
+    private static readonly string KnownHostsPath = Path.Combine(AppPaths.Root, "known_hosts.json");
 
     private readonly object _gate = new();
     private Dictionary<string, KnownHostEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
 
     public KnownHostsService()
     {
-        Directory.CreateDirectory(AppDir);
         Load();
     }
 
