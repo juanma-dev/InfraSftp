@@ -147,9 +147,14 @@ foreach ($d in @($PublishDir, $ReleasesDir)) {
 }
 
 # 4. Publish self-contained.
-Write-Host "==> dotnet publish (Release, win-x64, self-contained)..." -ForegroundColor Cyan
+# -f net8.0-windows is required because the csproj multi-targets to also
+# build for Linux (net8.0); the Windows-only manifest + DPAPI vault are
+# only present in the Windows TFM, which is what we ship in the Velopack
+# bundle.
+Write-Host "==> dotnet publish (Release, win-x64, net8.0-windows, self-contained)..." -ForegroundColor Cyan
 dotnet publish $CsprojPath `
     -c Release `
+    -f net8.0-windows `
     -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=false `
