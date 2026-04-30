@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=InfraSftp
+GenericName=SFTP Client
+Comment=Two-pane SFTP client (Windows / Linux)
+Comment[es]=Cliente SFTP de doble panel (Windows / Linux)
+Exec=infrasftp
+Icon=infrasftp
+Terminal=false
+Categories=Network;FileTransfer;Utility;
+Keywords=SFTP;SSH;FTP;file;transfer;
+StartupNotify=true
+StartupWMClass=InfraSftp

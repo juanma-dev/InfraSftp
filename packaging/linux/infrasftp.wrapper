@@ -1,0 +1,6 @@
+#!/bin/sh
+# /usr/bin/infrasftp — thin launcher for the bundled self-contained app.
+#
+# `exec` so signals from the desktop (SIGTERM on logout, etc.) flow
+# straight to the .NET process without a shell parent in the way.
+exec /opt/infrasftp/InfraSftp "$@"

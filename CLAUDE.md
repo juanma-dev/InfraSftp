@@ -145,6 +145,22 @@ Declared once in `<Window.KeyBindings>` in [MainWindow.axaml](Views/MainWindow.a
 - The hamburger **dropdown** (not a modal) lives at `ZIndex="90"` and uses a full-window transparent `Button` bound to `CloseMenuCommand` as its dismiss layer. Copy this pattern for any other non-modal popover.
 - Commands inside `DataTemplate`s (profile cards, tab buttons, file rows) reach the VM through `{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).XxxCommand}` because the `DataContext` inside the template is the item (Profile / TabItem / FileNode), not the VM.
 
+## Release pipeline
+
+Two parallel pipelines, one per platform. Both read `<Version>` from [InfraSftp.csproj](InfraSftp.csproj) so the version stamp is a single source of truth.
+
+### Windows (Velopack)
+
+[scripts/build-release.ps1](scripts/build-release.ps1) does the full pipeline: ensure self-signed cert exists in `Cert:\CurrentUser\My`, export to `.signing/InfraSftp.pfx`, `dotnet publish -f net8.0-windows -r win-x64 --self-contained`, then `vpk pack` (which signs every bundle file via signtool). Outputs to `releases/`: `com.webjuanma.InfraSftp-win-Setup.exe`, `com.webjuanma.InfraSftp-win-Portable.zip`, the `*-full.nupkg`, `RELEASES`, and `releases.win.json`. The `-f net8.0-windows` flag is mandatory — `dotnet publish` on a multi-targeted csproj errors NETSDK1129 without it.
+
+### Linux (RPM)
+
+[packaging/linux/build-rpm.sh](packaging/linux/build-rpm.sh) runs end-to-end on a Fedora host (or WSL Fedora — but build from `~/InfraSftp`, not `/mnt/c/...`, because NTFS rejects `chmod 755` on the apphost binary). It does `dotnet publish -f net8.0 -r linux-x64 --self-contained`, extracts PNGs from `Assets/avalonia-logo.ico` via `icotool`, stages everything into `~/rpmbuild/SOURCES/infrasftp-<ver>.tar.gz`, then `rpmbuild -bb` against a copy of [packaging/linux/infrasftp.spec](packaging/linux/infrasftp.spec). Sets `GPG_NAME` to sign the RPM at the end via `rpmsign --addsign`. Output lands in `releases-linux/`.
+
+The spec disables debug-package generation (`%define debug_package %{nil}`) — without that, RPM 6 on Fedora 44 errors with *"Empty %files file ... debugsourcefiles.list"* because there are no source files in a self-contained binary RPM. `AutoReqProv: no` is also load-bearing: the bundled .NET native libraries don't follow standard SONAME conventions, so auto-detected requires would be unsatisfiable.
+
+The signing step uses RPM's default `__gpg_sign_cmd`. Don't override that macro in `~/.rpmmacros` — RPM 6's default works, but the older 4.x-era override pattern (`%__gpg_sign_cmd %{__gpg} gpg ...`) duplicates the `gpg` binary name and fails with "no command supplied".
+
 ## Licensing
 
 [LICENSE](LICENSE) is a **stub** containing only the canonical GPLv3 copyright notice, not the full license text. The file references `https://www.gnu.org/licenses/gpl-3.0.html` for the authoritative version. This is intentional — do not paste the full ~700-line GPL text into the repo.

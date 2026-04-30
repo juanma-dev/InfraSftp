@@ -52,8 +52,12 @@ dist-ssr/
 .claude/
 .gemini/
 
-## Release pipeline (Velopack)
+## Release pipeline (Velopack — Windows)
 publish/
 releases/
 .signing/
 *.pfx
+
+## Release pipeline (RPM — Linux)
+releases-linux/
+*.rpm
